@@ -6,7 +6,7 @@
     <body>
         <div class="container">
 
-        <h1>Connexion Zoo</h1>
+        <h1>Connexion</h1>
             <?php
                 include("connex.inc.php");
                 $erreur = "";
@@ -17,13 +17,13 @@
                         $mdp = $_POST['mdp'];
                         $mdp_hash = md5($mdp);
 
-                        $requete="SELECT id_personnel FROM Personnel WHERE identifiant_personnel = '$id' AND mdp_personnel = '$mdp_hash'";
+                        $requete="SELECT numero_personnel FROM Personnel WHERE identifiant_personnel = '$id' AND mdp_personnel = '$mdp_hash'";
 
                         $idco=connex("myparam", "zoo");
                         $result = mysqli_query($idco, $requete);
 
                         if ($row = mysqli_fetch_array($result)){
-                            $_SESSION['id'] = $row['id_personnel'];
+                            $_SESSION['id'] = $row['numero_personnel'];
                             header("Location: dashboard.php");
                             exit();
                         } else {

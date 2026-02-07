@@ -2,7 +2,7 @@ body {
     margin: 0;
     font-family: "Segoe UI", Arial, sans-serif;
     background: linear-gradient(rgba(34, 139, 34, 0.6), rgba(0, 50, 0, 0.8)),
-                url("../images/image_connexion.jpg");
+        url("../images/image_connexion.jpg");
     background-size: cover;
     background-position: center;
     display: flex;
@@ -11,7 +11,8 @@ body {
 }
 
 .container {
-    background: rgba(255,255,255,0.95);
+    background: rgba(0, 112, 75, 0.35);
+    backdrop-filter: blur(10px);
     padding: 30px;
     border-radius: 15px;
     width: 320px;
@@ -20,11 +21,12 @@ body {
 }
 
 h1 {
-    margin-bottom: 20px;
-    color: #2e7d32;
+    color: rgba(15, 50, 30, 0.85);
+    letter-spacing: 1px;
 }
 
 label {
+    color: white;
     display: block;
     text-align: left;
     margin-top: 10px;
@@ -50,7 +52,7 @@ input[type="submit"] {
     color: white;
     font-size: 16px;
     cursor: pointer;
-    transition: 0.3s;
+    transition: 0.25s;
 }
 
 input[type="submit"]:hover {

@@ -1,0 +1,54 @@
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(rgba(11, 61, 46, 0.75), rgba(5, 35, 25, 0.9)),
+        url("../images/image_dashboard.jpg");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    background: rgba(31, 111, 84, 0.35);
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 22px;
+    width: 420px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.45);
+    text-align: center;
+}
+
+h1 {
+    color: #FF8FA3;
+    letter-spacing: 1px;
+}
+
+.bonjour {
+    font-size: 20px;
+    margin-bottom: 30px;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.menu button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 18px;
+    background: rgba(0, 80, 0, 0.9);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.menu button:hover {
+    background: rgba(0, 120, 0, 1);
+    transform: scale(1.03);
+}
