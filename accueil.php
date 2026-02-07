@@ -1,45 +1,52 @@
 <html>
+    <head>
+        <link rel="stylesheet" href="css/accueil.css">
+    </head>
     <body>
-        <?php
-            include("connex.inc.php");
-            $erreur = "";
-            if (isset($_POST['identifiant']) && isset($_POST['mdp'])){
-                if (!empty($_POST['identifiant']) && !empty($_POST['mdp'])){
-                    
-                    $id = $_POST['identifiant'];
-                    $mdp = $_POST['mdp'];
+        <div class="container">
 
-                    $requete="SELECT prenom_personnel FROM Personnel WHERE identifiant_personnel = '$id' AND mdp_personnel = '$mdp'";
+        <h1>Connexion Zoo</h1>
+            <?php
+                include("connex.inc.php");
+                $erreur = "";
+                if (isset($_POST['identifiant']) && isset($_POST['mdp'])){
+                    if (!empty($_POST['identifiant']) && !empty($_POST['mdp'])){
+                        
+                        $id = $_POST['identifiant'];
+                        $mdp = $_POST['mdp'];
 
-                    $idco=connex("myparam", "zoo");
-                    $result = mysqli_query($idco, $requete);
+                        $requete="SELECT prenom_personnel FROM Personnel WHERE identifiant_personnel = '$id' AND mdp_personnel = '$mdp'";
 
-                    if (mysqli_num_rows($result) > 0){
-                        header("Location: dashboard.php");
-                        exit();
+                        $idco=connex("myparam", "zoo");
+                        $result = mysqli_query($idco, $requete);
+
+                        if (mysqli_num_rows($result) > 0){
+                            header("Location: dashboard.php");
+                            exit();
+                        } else {
+                            $erreur = "Identifiant ou mot de passe incorrect";
+                        }
+
                     } else {
-                        $erreur = "Identifiant ou mot de passe incorrect";
+                        $erreur = "Veuillez remplir les deux champs <br>";
                     }
-
-                } else {
-                    $erreur = "Veuillez remplir les deux champs <br>";
                 }
-            }
-            
-        ?>
+                
+            ?>
 
-        <form method="post" action="">
-            Identifiant : <input type="text" name="identifiant">
-            <br/><br/>
-            Mot de passe : <input type="password" name="mdp">
-            <br/><br/>
-            <input type="submit">
-        </form>
+            <form method="post">
+                <label>Identifiant</label>
+                <input type="text" name="identifiant">
+                <label>Mot de passe</label>
+                <input type="password" name="mdp">
+                <input type="submit" value="Entrer dans le zoo">
+            </form>
 
-        <?php   
-            if ($erreur != ""){
-                echo "<p>$erreur</p>";
-            }
-        ?>
+            <?php   
+                if ($erreur != ""){
+                    echo "<p class='erreur'>$erreur</p>";
+                }
+            ?>
+        </div>
     </body>
 </html>

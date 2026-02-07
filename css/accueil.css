@@ -1,0 +1,64 @@
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(rgba(34, 139, 34, 0.6), rgba(0, 50, 0, 0.8)),
+                url("../images/image_connexion.jpg");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    background: rgba(255,255,255,0.95);
+    padding: 30px;
+    border-radius: 15px;
+    width: 320px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+    color: #2e7d32;
+}
+
+label {
+    display: block;
+    text-align: left;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 18px;
+    border: 3px solid #2e7d32;
+}
+
+input[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 18px;
+    background: #2e7d32;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+input[type="submit"]:hover {
+    background: #1b5e20;
+}
+
+.erreur {
+    color: red;
+    margin-top: 15px;
+    font-weight: bold;
+}
