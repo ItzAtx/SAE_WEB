@@ -1,4 +1,7 @@
-<?php session_start(); ?>
+<?php session_start(); 
+error_reporting(E_ALL);
+ini_set('display_errors', 1); // Gestion des erreurs
+?>
 <html>
     <head>
         <link rel="stylesheet" href="css/accueil.css">

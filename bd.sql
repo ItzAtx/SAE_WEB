@@ -15,10 +15,13 @@ CREATE TABLE Personnel(
     FOREIGN KEY (id_fonction) REFERENCES Fonction(id_fonction)
 );
 
-INSERT INTO Fonction VALUES(1, 'Directeur');
-INSERT INTO Fonction VALUES(2, 'Vétérinaire');
-INSERT INTO Fonction VALUES(3, 'Caissier');
+INSERT INTO Fonction(nom_fonction) VALUES('Directeur');
+INSERT INTO Fonction(nom_fonction) VALUES('Vétérinaire');
+INSERT INTO Fonction(nom_fonction) VALUES('Caissier');
 
-INSERT INTO Personnel VALUES(1, 'Anthony', 'Vauchel', '2026-02-07', 5000, MD5('1'), 'anthony.vauchel', 1);
-INSERT INTO Personnel VALUES(2, 'Alexandre', 'Delloue', '2026-02-07', 3000, MD5('jesuisfou5'), 'alexandre.delloue', 2);
-INSERT INTO Personnel VALUES(3, 'Selma', 'Belabbas', '2026-02-07', 1600, MD5('liberezmoi4'), 'selma.belabbas', 3);
+INSERT INTO Personnel(prenom_personnel, nom_personnel, date_entree_personnel, salaire_personnel, mdp_personnel, identifiant_personnel, id_fonction) 
+VALUES('Anthony', 'Vauchel', '2026-02-07', 5000, MD5('1'), 'anthony.vauchel', 1);
+INSERT INTO Personnel(prenom_personnel, nom_personnel, date_entree_personnel, salaire_personnel, mdp_personnel, identifiant_personnel, id_fonction) 
+VALUES(2, 'Alexandre', 'Delloue', '2026-02-07', 3000, MD5('jesuisfou5'), 'alexandre.delloue', 2);
+INSERT INTO Personnel(prenom_personnel, nom_personnel, date_entree_personnel, salaire_personnel, mdp_personnel, identifiant_personnel, id_fonction) 
+VALUES(3, 'Selma', 'Belabbas', '2026-02-07', 1600, MD5('liberezmoi4'), 'selma.belabbas', 3);

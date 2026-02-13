@@ -53,20 +53,31 @@
 
                 <form method="post">
                     Nouveau mot de passe : <input type="text" name="nvmdp">
+                    Confirmer : <input type="text" name="nvmdp2">
                     <input type="submit" value="Confirmer">
                 </form>
 
                 <?php
 
-                    if (isset($_POST['nvmdp'])){
-                        if (!empty($_POST['nvmdp'])){
-                            $nouveau = md5($_POST['nvmdp']);
+                    if (isset($_POST['nvmdp']) && isset($_POST['nvmdp2'])){
+                        if ($_POST['nvmdp'] == $_POST['nvmdp2']) {
+                            if (preg_match("/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/", $_POST['nvmdp'])) {
+                                if (!empty($_POST['nvmdp'])){
+                                    $nouveau = md5($_POST['nvmdp']);
 
-                            $requete = "UPDATE Personnel SET mdp_personnel = '$nouveau' WHERE numero_personnel = $id";
-                            mysqli_query($idco, $requete);
-                            echo "Mot de passe modifié !";
-                        } else {
-                            echo "Veuillez saisir un nouveau mot de passe";
+                                    $requete = "UPDATE Personnel SET mdp_personnel = '$nouveau' WHERE numero_personnel = $id";
+                                    //mysqli_query($idco, $requete);
+                                    echo "Mot de passe modifié !";
+                                } else {
+                                    echo "Veuillez saisir un nouveau mot de passe";
+                                }
+                            }
+                            else {
+                                echo "Le format ne correspond pas";
+                            }
+                        }
+                        else {
+                            echo "Les mot de passe sont différents";
                         }
                     }
                     
