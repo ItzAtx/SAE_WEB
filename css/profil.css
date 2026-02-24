@@ -44,6 +44,12 @@ h2 {
     color: rgba(244,247,245,1);
 }
 
+.erreur{
+    color: red;
+    margin-top: 15px;
+    font-weight: bold; 
+}
+
 .info {
     margin-bottom: 10px;
     font-size: 16px;

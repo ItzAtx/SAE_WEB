@@ -31,7 +31,7 @@
             <div class="menu">
                 <a href="profil.php"><button>Profil</button></a>
                 <a href="employes.php"><button>Gérer employés</button></a>
-                <a href="enclos.php"><button>Gérer enclos</button></a>
+                <a href="search.php"><button>Gérer enclos</button></a>
             </div>
 
             <?php

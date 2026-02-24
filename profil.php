@@ -13,6 +13,7 @@
     <body>
         <div class="container">
             <div class="left">
+                <a href="dashboard.php"><button>Retour</button></a>
                 <h2>Informations</h2>
                 <?php
                     include("connex.inc.php");
@@ -27,7 +28,6 @@
                     $prenom = $row['prenom_personnel'];
                     $nom = $row['nom_personnel'];
                     $date = $row['date_entree_personnel'];
-                    $salaire = $row['salaire_personnel'];
                     $identifiant = $row['identifiant_personnel'];
                     $id_fonction = $row['id_fonction'];
 
@@ -41,9 +41,10 @@
                 <div class="info">Prénom : <?php echo $prenom; ?></div>
                 <div class="info">Nom : <?php echo $nom; ?></div>
                 <div class="info">Date d'entrée : <?php echo $date; ?></div>
-                <div class="info">Salaire mensuel : <?php echo $salaire; ?></div>
                 <div class="info">Identifiant de connexion : <?php echo $identifiant; ?></div>
                 <div class="info">Poste : <?php echo $fonction; ?></div>
+
+                <a href="modification.php"><button>Modifier</button></a>
             </div>
 
             <div class="separator"></div>
@@ -52,6 +53,7 @@
                 <h2>Sécurité</h2>
 
                 <form method="post">
+                    Format : minimum 8 caractères, dont 1 majuscule, minuscule, chiffre <br> <br>
                     Nouveau mot de passe : <input type="text" name="nvmdp">
                     Confirmer : <input type="text" name="nvmdp2">
                     <input type="submit" value="Confirmer">
@@ -66,18 +68,18 @@
                                     $nouveau = md5($_POST['nvmdp']);
 
                                     $requete = "UPDATE Personnel SET mdp_personnel = '$nouveau' WHERE numero_personnel = $id";
-                                    //mysqli_query($idco, $requete);
+                                    mysqli_query($idco, $requete);
                                     echo "Mot de passe modifié !";
                                 } else {
                                     echo "Veuillez saisir un nouveau mot de passe";
                                 }
                             }
                             else {
-                                echo "Le format ne correspond pas";
+                                echo "<p class='erreur'> Le format ne correspond pas </p>";
                             }
                         }
                         else {
-                            echo "Les mot de passe sont différents";
+                            echo "<p class='erreur'> Les mot de passe sont différents </p>";
                         }
                     }
                     
