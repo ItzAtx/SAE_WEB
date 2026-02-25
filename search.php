@@ -1,4 +1,16 @@
 <html>
+    <link rel="stylesheet" href="css/search.css">
+    <div class="header">
+        <div class="profil">
+            <a href="profil.php"><img src="images/user.png" class="user"></a>
+        </div>
+
+        <div class="search">
+            <input class="searchbar" name="barreRecherche" placeholder="Rechercher">
+            <button class="searchbutton">chercher</button>
+        </div>
+    </div>
+
     <div id="filtres">
         <div>
             <h3>Type</h3>

@@ -27,7 +27,7 @@ ini_set('display_errors', 1); // Gestion des erreurs
 
                         if ($row = mysqli_fetch_array($result)){
                             $_SESSION['id'] = $row['numero_personnel'];
-                            header("Location: dashboard.php");
+                            header("Location: search.php");
                             exit();
                         } else {
                             $_SESSION['erreur'] = "Identifiant ou mot de passe incorrect";

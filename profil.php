@@ -13,7 +13,7 @@
     <body>
         <div class="container">
             <div class="left">
-                <a href="dashboard.php"><button>Retour</button></a>
+                <a href="search.php"><button>Accueil</button></a>
                 <h2>Informations</h2>
                 <?php
                     include("connex.inc.php");
@@ -56,7 +56,7 @@
                     Format : minimum 8 caractères, dont 1 majuscule, minuscule, chiffre <br> <br>
                     Nouveau mot de passe : <input type="text" name="nvmdp">
                     Confirmer : <input type="text" name="nvmdp2">
-                    <input type="submit" value="Confirmer">
+                    <input type="submit" value="Mettre à jour">
                 </form>
 
                 <?php

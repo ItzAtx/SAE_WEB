@@ -1,0 +1,70 @@
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(rgba(25, 70, 45, 0.80), rgba(15, 50, 30, 0.95)),
+        url("../images/image_modif.jpg");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(244,247,245,1);
+}
+
+.container {
+    background: rgba(60, 130, 90, 0.30);
+    backdrop-filter: blur(14px);
+    padding: 40px;
+    border-radius: 15px;
+    width: 720px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.45);
+}
+
+h3 {
+    margin-top: 0px;
+    font-size: 24px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.erreur {
+    color: red;
+}
+
+.succes {
+    margin-bottom: 10px;
+}
+
+input,
+input[type="text"],
+input[type="date"],
+input[type="textarea"] {
+    padding: 12px;
+    border-radius: 14px;
+    border: none;
+    font-size: 18px;
+}
+
+input[type="submit"],
+button {
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 18px;
+    border: none;
+    background: rgba(45,110,75,0.9);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+input[type="submit"]:hover,
+button:hover {
+    background: rgba(160,210,170,1);
+    transform: scale(1.03);
+}
+
