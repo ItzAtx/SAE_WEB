@@ -2,7 +2,7 @@ body {
     margin: 0;
     font-family: "Segoe UI", Arial, sans-serif;
     background: linear-gradient(rgba(25, 70, 45, 0.80), rgba(15, 50, 30, 0.95)),
-        url("../images/image_profil.jpg");
+        url("../images/image_profil.webp");
     background-size: cover;
     background-position: center;
     display: flex;

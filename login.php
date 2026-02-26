@@ -1,7 +1,4 @@
-<?php session_start(); 
-error_reporting(E_ALL);
-ini_set('display_errors', 1); // Gestion des erreurs
-?>
+<?php session_start(); ?>
 <html>
     <head>
         <link rel="stylesheet" href="css/accueil.css">
@@ -18,14 +15,17 @@ ini_set('display_errors', 1); // Gestion des erreurs
                         
                         $id = $_POST['identifiant'];
                         $mdp = $_POST['mdp'];
-                        $mdp_hash = md5($mdp);
-
-                        $requete="SELECT numero_personnel FROM Personnel WHERE identifiant_personnel = '$id' AND mdp_personnel = '$mdp_hash'";
 
                         $idco=connex("myparam", "zoo");
-                        $result = mysqli_query($idco, $requete);
 
-                        if ($row = mysqli_fetch_array($result)){
+                        $requete="SELECT numero_personnel, mdp_personnel FROM Personnel WHERE identifiant_personnel = '$id'";
+
+                        
+                        $result = mysqli_query($idco, $requete);
+                        $row = mysqli_fetch_assoc($result);
+                        echo $row['mdp_personnel'];
+
+                        if ($row && password_verify($mdp, $row['mdp_personnel'])){
                             $_SESSION['id'] = $row['numero_personnel'];
                             header("Location: search.php");
                             exit();

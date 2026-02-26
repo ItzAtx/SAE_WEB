@@ -2,7 +2,7 @@ body {
     margin: 0;
     font-family: "Segoe UI", Arial, sans-serif;
     background: linear-gradient(rgba(34, 139, 34, 0.6), rgba(0, 50, 0, 0.8)),
-        url("../images/image_connexion.jpg");
+        url("../images/image_connexion.webp");
     background-size: cover;
     background-position: center;
     display: flex;

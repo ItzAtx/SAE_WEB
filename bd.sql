@@ -20,8 +20,8 @@ INSERT INTO Fonction(nom_fonction) VALUES('Vétérinaire');
 INSERT INTO Fonction(nom_fonction) VALUES('Caissier');
 
 INSERT INTO Personnel(prenom_personnel, nom_personnel, date_entree_personnel, salaire_personnel, mdp_personnel, identifiant_personnel, id_fonction) 
-VALUES('Anthony', 'Vauchel', '2026-02-07', 5000, MD5('1'), 'anthony.vauchel', 1);
+VALUES('Anthony', 'Vauchel', '2026-02-07', 5000, '$2a$12$3AXQtaKe5CZC5NKgeENWquGKYnczJL9NxJGqnIBCc26HaPfYaJVP61', 'anthony.vauchel', 1);
 INSERT INTO Personnel(prenom_personnel, nom_personnel, date_entree_personnel, salaire_personnel, mdp_personnel, identifiant_personnel, id_fonction) 
-VALUES(2, 'Alexandre', 'Delloue', '2026-02-07', 3000, MD5('jesuisfou5'), 'alexandre.delloue', 2);
+VALUES('Alexandre', 'Delloue', '2026-02-07', 3000, '$2a$12$86fYcd5g5H61Xmk24vQrA.HR7amEbL6NZTWF95anu/agOJKoXfYje', 'alexandre.delloue', 2);
 INSERT INTO Personnel(prenom_personnel, nom_personnel, date_entree_personnel, salaire_personnel, mdp_personnel, identifiant_personnel, id_fonction) 
-VALUES(3, 'Selma', 'Belabbas', '2026-02-07', 1600, MD5('liberezmoi4'), 'selma.belabbas', 3);
+VALUES('Selma', 'Belabbas', '2026-02-07', 1600, '$2a$12$3AXQtaKe5CZC5NKgeENWquGKYnczJL9NxJGqnIBCc26HaPfYaJVP6', 'selma.belabbas', 3);
