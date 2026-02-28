@@ -1,12 +1,17 @@
 <?php
+	function connex($param, $base){
+		include_once($param.".inc.php");
+		$dsn="mysql:host=".MYHOST.";
+		dbname=".$base;
+		$user=MYUSER;
+		$pass=MYPASS;
 
-function connex($param)
-{
-	include($param . ".inc.php");
-	$idcom = mysqli_connect(MYHOST, MYUSER, MYPASS, MYBASE);
-	if (!$idcom) {
-		echo "<script type=text/javascript>";
-		echo "alert('Connexion Impossible à la base')</script>";
+		try{
+			$idcom = new PDO($dsn,$user,$pass);
+			return $idcom;
+		}
+		catch(PDOException $except){
+			die('Erreur : ' . $except->getMessage());
+		}
 	}
-	return $idcom;
-}
+?>

@@ -20,7 +20,7 @@ INSERT INTO Fonction(nom_fonction) VALUES('Vétérinaire');
 INSERT INTO Fonction(nom_fonction) VALUES('Caissier');
 
 INSERT INTO Personnel(prenom_personnel, nom_personnel, date_entree_personnel, salaire_personnel, mdp_personnel, identifiant_personnel, id_fonction) 
-VALUES('Anthony', 'Vauchel', '2026-02-07', 5000, '$2a$12$3AXQtaKe5CZC5NKgeENWquGKYnczJL9NxJGqnIBCc26HaPfYaJVP61', 'anthony.vauchel', 1);
+VALUES('Anthony', 'Vauchel', '2026-02-07', 5000, '$2a$12$lobkyF/C7pDLhHXUPgQeh.o25J0XS4/VuiLrDQE4y3.dVMcrcN7gG', 'anthony.vauchel', 1);
 INSERT INTO Personnel(prenom_personnel, nom_personnel, date_entree_personnel, salaire_personnel, mdp_personnel, identifiant_personnel, id_fonction) 
 VALUES('Alexandre', 'Delloue', '2026-02-07', 3000, '$2a$12$86fYcd5g5H61Xmk24vQrA.HR7amEbL6NZTWF95anu/agOJKoXfYje', 'alexandre.delloue', 2);
 INSERT INTO Personnel(prenom_personnel, nom_personnel, date_entree_personnel, salaire_personnel, mdp_personnel, identifiant_personnel, id_fonction) 
