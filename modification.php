@@ -1,7 +1,7 @@
 <?php 
     session_start();
     if (!isset($_SESSION['id'])){
-        header("Location: login.php");
+        header("Location: index.php");
         exit();
     } 
 ?>
@@ -19,30 +19,33 @@
                     unset($_SESSION['succes']);
                 }
 
-                include("connex.inc.php");
-                $idco = connex("myparam", "zoo"); //Connexion à la BDD
+                //$conn = oci_connect("anthonyvauchel", "oracle", "10.1.16.56/oracle2"); //Connexion à la BD fac
+                $conn = oci_connect("SYSTEM", "oracle", "192.168.1.3/FREE"); //Connexion à la BD locale
 
                 $id_session = $_SESSION['id']; //Récupération de l'id de l'utilisateur depuis la session
 
                 //Requête préparée et execution
-                $requeteP = $idco->prepare("SELECT * FROM Personnel 
-                                           WHERE numero_personnel = :identifiant"
-                );
-                $requeteP->execute(['identifiant' => $id_session]);
+                $requeteP = oci_parse($conn,
+                            "SELECT prenom_personnel, nom_personnel, TO_CHAR(date_entree_personnel,'YYYY-MM-DD') AS date_entree_personnel, identifiant_personnel
+                             FROM Personnel
+                             WHERE numero_personnel = :identifiant"
+                        );
+                oci_bind_by_name($requeteP, ":identifiant", $id_session);
+                oci_execute($requeteP);
 
                 //Récupération des données depuis la BDD
-                $row = $requeteP->fetch(PDO::FETCH_ASSOC);
-                $prenom = $row['prenom_personnel'];
-                $nom = $row['nom_personnel'];
-                $date = $row['date_entree_personnel'];
-                $identifiant = $row['identifiant_personnel'];
+                $row = oci_fetch_array($requeteP, OCI_ASSOC+OCI_RETURN_NULLS);
+                $prenom = $row['PRENOM_PERSONNEL'];
+                $nom = $row['NOM_PERSONNEL'];
+                $date = $row['DATE_ENTREE_PERSONNEL'];
+                $identifiant = $row['IDENTIFIANT_PERSONNEL'];
             ?>
 
             <form method="post">
-                <label>Prénom</label> <input type="textarea" value="<?php echo $prenom ?>" name="prenom"> <br><br>
-                <label>Nom</label> <input type="textarea" value="<?php echo $nom ?>" name="nom"> <br><br>
+                <label>Prénom</label> <input type="text" value="<?php echo $prenom ?>" name="prenom"> <br><br>
+                <label>Nom</label> <input type="text" value="<?php echo $nom ?>" name="nom"> <br><br>
                 <label>Date d'arrivée</label> <input type="date" value="<?php echo $date ?>" name="date"> <br><br>
-                <label>Identifiant</label> <input type="textarea" value="<?php echo $identifiant ?>" name="identifiant"> <br><br>
+                <label>Identifiant</label> <input type="text" value="<?php echo $identifiant ?>" name="identifiant"> <br><br>
                 <input type="submit" value="Mettre à jour">
             </form>
 
@@ -56,11 +59,19 @@
                         $identifiant = $_POST['identifiant'];
 
                         //Préparation de la requête (mise à jour des données) et execution
-                        $requeteP = $idco->prepare("UPDATE Personnel
-                                                    SET prenom_personnel = :prenom, nom_personnel = :nom, date_entree_personnel = :date_entree, identifiant_personnel = :identifiant_connex
-                                                    WHERE numero_personnel = :identifiant"
+                        $requeteP = oci_parse($conn,
+                            "UPDATE Personnel
+                             SET prenom_personnel = :prenom, nom_personnel = :nom, date_entree_personnel = TO_DATE(:date_entree, 'YYYY-MM-DD'), identifiant_personnel = :identifiant_connex
+                             WHERE numero_personnel = :identifiant"
                         );
-                        $requeteP->execute(['prenom' => $prenom, 'nom' => $nom, 'date_entree' => $date, 'identifiant_connex' => $identifiant, 'identifiant' => $id_session]);
+                        oci_bind_by_name($requeteP, ":prenom", $prenom);
+                        oci_bind_by_name($requeteP, ":nom", $nom);
+                        oci_bind_by_name($requeteP, ":date_entree", $date);
+                        oci_bind_by_name($requeteP, ":identifiant_connex", $identifiant);
+                        oci_bind_by_name($requeteP, ":identifiant", $id_session);
+                        oci_execute($requeteP);
+
+                        oci_commit($conn); //Mise à jour
 
                         $_SESSION['succes'] = "Informations mises à jour !";
                         header("Location: modification.php"); //On redirige l'utilisateur vers la même page à jour
