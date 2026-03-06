@@ -100,7 +100,7 @@
                     
                 ?>
 
-                <a href="index.php"><button>Deconnexion</button></a>
+                <a href="logout.php"><button>Deconnexion</button></a>
             </div>
         </div>
     </body>

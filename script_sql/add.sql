@@ -7,15 +7,18 @@ INSERT INTO Fonction (id_fonction, fonction) VALUES (5, 'Directeur de magasin');
 
 
 /*Personnel (sans zone dans un premier temps, contrainte circulaire Zone_zoo <-> Personnel)*/
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (1, 'Martin',   'Sophie',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'sophie.martin', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (2, 'Dupont',   'Julien',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'julien.dupont', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (3, 'Bernard',  'Camille',  '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'camille.bernard', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (4, 'Lefebvre', 'Thomas',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'thomas.lefebvre', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (5, 'Moreau',   'Isabelle', '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'isabelle.moreau', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (1, 'Belabbas',   'Selma',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'selma.belabbas', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (2, 'Delloue',   'Alexandre',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'allexandre.delloue', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (3, 'Vauchel',  'Anthony',  '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'anthony.vauchel', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (4, 'Katr', 'Jhin',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'jhin.katr', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (5, 'Mamamia',   'Mario', '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'mario.mamamia', NULL);
 
-/*Zones (2 zones, responsable = Directeur id=1)*/
+/*Zones (5 zones, responsable = Directeur id=1)*/
 INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (1, 'Zone Afrique', 1);
 INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (2, 'Zone Asie',    1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (3, 'Zone France',    1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (4, 'Zone Dinosaure',    1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (5, 'Zone Aquatique',    1);
 
 -- Rattachement des personnels a leur zone
 UPDATE Personnel SET id_zone = 1 WHERE id_personnel IN (1, 2, 3);
@@ -25,43 +28,78 @@ UPDATE Personnel SET id_zone = 2 WHERE id_personnel IN (4, 5);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (1, 4500.00, DATE '2022-01-01', NULL, 1, 1);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (2, 2800.00, DATE '2023-03-15', NULL, 2, 2);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (3, 2600.00, DATE '2023-06-01', NULL, 3, 3);
-INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (4, 1900.00, DATE '2024-01-10', NULL, 4, 4);
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (4, 4444.00, DATE '2024-04-04', NULL, 4, 4);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (5, 3200.00, DATE '2023-09-01', NULL, 5, 5);
 
-/*Especes (3 especes)*/
-INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Panthera leo',           'Lion',     'N');
-INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Loxodonta africana',     'Elephant', 'O');
-INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Giraffa camelopardalis', 'Girafe',   'N');
+/*Especes (9 especes)*/
+INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Panthera leo', 'Lion', 'N');
+INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Loxodonta africana', 'Elephant', 'O');
+INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Giraffa camelopardalis', 'Girafe', 'N');
+INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Tyrannosaurus rex', 'Trex', 'O');
+INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Velociraptor mongoliensis', 'Velociraptor', 'O');
+INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Columba livia', 'Pigeon', 'O');
+INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Rattus norvegicus', 'Rat', 'N');
+INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Testudo graeca', 'Tortue', 'N');
+INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Carcharodon carcharias', 'Requin blanc', 'O');
 
-/*Enclos (3 enclos : 2 en zone 1 - Afrique, 1 en zone 2 - Asie)*/
+/*Enclos (7 enclos : 2 en zone 1 - Afrique, 1 en zone 2 - Asie, 1 en zone 3 - France, 2 en zone 4 - Dinosaure, 1 en zone 5 - Aquatique)*/
 INSERT INTO Enclos (id_enclos, latitude, longitude, surface, id_zone) VALUES (1, 48.8566, 2.3522, 5000.00, 1);
 INSERT INTO Enclos (id_enclos, latitude, longitude, surface, id_zone) VALUES (2, 48.8570, 2.3530, 3500.00, 1);
 INSERT INTO Enclos (id_enclos, latitude, longitude, surface, id_zone) VALUES (3, 48.8580, 2.3545, 4200.00, 2);
+INSERT INTO Enclos (id_enclos, latitude, longitude, surface, id_zone) VALUES (4, 48.8480, 2.3593, 250.00, 3);
+INSERT INTO Enclos (id_enclos, latitude, longitude, surface, id_zone) VALUES (5, 48.8550, 2.3430, 2000.00, 4);
+INSERT INTO Enclos (id_enclos, latitude, longitude, surface, id_zone) VALUES (6, 48.8450, 2.3830, 5265.00, 4);
+INSERT INTO Enclos (id_enclos, latitude, longitude, surface, id_zone) VALUES (7, 48.8560, 2.3585, 6800.00, 5);
 
 /*Particularité et Possession (1 particularite par enclos)*/
 INSERT INTO Particularite (libelle_particularite) VALUES ('Mare artificielle');
 INSERT INTO Particularite (libelle_particularite) VALUES ('Vegetation dense');
 INSERT INTO Particularite (libelle_particularite) VALUES ('Rochers grimpables');
+INSERT INTO Particularite (libelle_particularite) VALUES ('Sol sableux');
+INSERT INTO Particularite (libelle_particularite) VALUES ('Bassin profond');
+INSERT INTO Particularite (libelle_particularite) VALUES ('Nexus');
+INSERT INTO Particularite (libelle_particularite) VALUES ('Gros bout de viande');
 
 INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (1, 'Mare artificielle');
 INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (2, 'Vegetation dense');
 INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (3, 'Rochers grimpables');
+INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (4, 'Sol sableux');
+INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (5, 'Nexus');
+INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (6, 'Gros bout de viande');
+INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (7, 'Bassin profond');
 
 /*Animal
       Enclos 1 (Zone Afrique) : 2 Lions
       Enclos 2 (Zone Afrique) : 2 Elephants
       Enclos 3 (Zone Asie)    : 1 Girafe
+      Enclos 4 (Zone France)    : 2 Rats et 1 Pigeon
 */
 INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
-    VALUES (1001, 'Simba',  DATE '2019-05-12', 180.50, NULL, NULL, 1, 'Panthera leo');
+    VALUES (1001, 'Simba',  DATE '2019-05-12', 80.50, NULL, NULL, 1, 'Panthera leo');
 INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
-    VALUES (1002, 'Nala',   DATE '2020-03-08', 130.20, NULL, NULL, 1, 'Panthera leo');
+    VALUES (1002, 'Nala',   DATE '2020-03-08', 30.20, NULL, NULL, 1, 'Panthera leo');
 INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
     VALUES (1003, 'Dumbo',  DATE '2018-11-25', 99.99,  NULL, NULL, 2, 'Loxodonta africana');
 INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
     VALUES (1004, 'Babar',  DATE '2015-07-14', 99.99,  NULL, NULL, 2, 'Loxodonta africana');
 INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
     VALUES (1005, 'Melman', DATE '2021-01-30', 99.99,  NULL, NULL, 3, 'Giraffa camelopardalis');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1006, 'Ratatouille', DATE '2021-05-10', 1.6,  NULL, NULL, 4, 'Rattus norvegicus');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1007, 'Kled', DATE '2026-03-06', 1.75,  NULL, NULL, 4, 'Rattus norvegicus');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1008, 'Babouche', DATE '2005-09-11', 6.7,  NULL, NULL, 4, 'Columba livia');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1009, 'Trucmuche', DATE '1975-05-07', 36.7,  NULL, NULL, 5, 'Velociraptor mongoliensis');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1010, 'Skaarl', DATE '1974-01-08', 2.3,  NULL, NULL, 5, 'Velociraptor mongoliensis');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1011, 'Chogathe', DATE '1971-01-31', 2.3,  NULL, NULL, 6, 'Tyrannosaurus rex');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1012, 'Franklin', DATE '2018-12-07', 2.3,  NULL, NULL, 7, 'Testudo graeca');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1013, 'Fizz', DATE '2024-06-15', 2.3,  NULL, NULL, 7, 'Carcharodon carcharias');
 
 /*Soigneur attitré aux 5 animaux (Camille Bernard, id_personnel=3)*/
 INSERT INTO Attitre (RFID, id_personnel) VALUES (1001, 3);
@@ -69,11 +107,25 @@ INSERT INTO Attitre (RFID, id_personnel) VALUES (1002, 3);
 INSERT INTO Attitre (RFID, id_personnel) VALUES (1003, 3);
 INSERT INTO Attitre (RFID, id_personnel) VALUES (1004, 3);
 INSERT INTO Attitre (RFID, id_personnel) VALUES (1005, 3);
+INSERT INTO Attitre (RFID, id_personnel) VALUES (1006, 3);
+INSERT INTO Attitre (RFID, id_personnel) VALUES (1007, 3);
+INSERT INTO Attitre (RFID, id_personnel) VALUES (1008, 3);
+INSERT INTO Attitre (RFID, id_personnel) VALUES (1009, 3);
+INSERT INTO Attitre (RFID, id_personnel) VALUES (1010, 3);
+INSERT INTO Attitre (RFID, id_personnel) VALUES (1011, 3);
+INSERT INTO Attitre (RFID, id_personnel) VALUES (1012, 3);
+INSERT INTO Attitre (RFID, id_personnel) VALUES (1013, 3);
 
 -- Specialisations du soigneur sur les 3 especes
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Panthera leo',           3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Loxodonta africana',     3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Giraffa camelopardalis', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Rattus norvegicus', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Columba livia', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Velociraptor mongoliensis', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Tyrannosaurus rex', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Testudo graeca', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Carcharodon carcharias', 3);
 
 /*Soins (1 soin par animal, tous prodigues par le soigneur id=3)*/
 INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (1, DATE '2025-02-01', 'Simple', 1001);
@@ -81,12 +133,28 @@ INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (2, DATE '2025-0
 INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (3, DATE '2025-02-10', 'Complexe',  1003);
 INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (4, DATE '2025-02-15', 'Simple', 1004);
 INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (5, DATE '2025-02-20', 'Complexe',  1005);
+INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (6, DATE '2025-02-22', 'Simple', 1006);
+INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (7, DATE '2025-02-23', 'Simple', 1007);
+INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (8, DATE '2025-02-24', 'Simple', 1008);
+INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (9, DATE '2025-02-25', 'Complexe', 1009);
+INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (10, DATE '2025-02-26', 'Complexe', 1010);
+INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (11, DATE '2025-02-27', 'Complexe', 1011);
+INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (12, DATE '2025-02-28', 'Simple', 1012);
+INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (13, DATE '2025-03-01', 'Complexe', 1013);
 
 INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 1);
 INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 2);
 INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 3);
 INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 4);
 INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 5);
+INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 6);
+INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 7);
+INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 8);
+INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 9);
+INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 10);
+INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 11);
+INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 12);
+INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 13);
 
 /*Nourriture (2 types partages par tous les animaux)*/
 INSERT INTO Nourriture (id_nourriture, nom) VALUES (1, 'Viande fraiche');
@@ -98,6 +166,14 @@ INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (2, 'Repas Nala',   D
 INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (3, 'Repas Dumbo',  DATE '2025-02-01');
 INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (4, 'Repas Babar',  DATE '2025-02-01');
 INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (5, 'Repas Melman', DATE '2025-02-01');
+INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (6, 'Repas Ratatouille', DATE '2025-02-02');
+INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (7, 'Repas Kled', DATE '2025-02-02');
+INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (8, 'Repas Babouche', DATE '2025-02-02');
+INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (9, 'Repas Trucmuche', DATE '2025-02-02');
+INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (10, 'Repas Skaarl', DATE '2025-02-02');
+INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (11, 'Repas Chogathe', DATE '2025-02-02');
+INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (12, 'Repas Franklin', DATE '2025-02-02');
+INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (13, 'Repas Fizz', DATE '2025-02-02');
 
 -- Chaque repas contient les 2 nourritures
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (1, 1, 3);
@@ -110,6 +186,22 @@ INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (4, 1, 1);
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (4, 2, 5);
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (5, 1, 2);
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (5, 2, 8);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (6, 2, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (7, 2, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (8, 2, 2);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (9, 1, 4);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (10, 1, 4);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (11, 1, 10);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (12, 2, 3);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (13, 1, 6);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (6, 1, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (7, 1, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (8, 1, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (9, 2, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (10, 2, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (11, 2, 2);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (12, 1, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (13, 2, 2);
 
 -- Chaque animal consomme son repas
 INSERT INTO Consomme (RFID, id_repas) VALUES (1001, 1);
@@ -117,6 +209,14 @@ INSERT INTO Consomme (RFID, id_repas) VALUES (1002, 2);
 INSERT INTO Consomme (RFID, id_repas) VALUES (1003, 3);
 INSERT INTO Consomme (RFID, id_repas) VALUES (1004, 4);
 INSERT INTO Consomme (RFID, id_repas) VALUES (1005, 5);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (6, 1, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (7, 1, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (8, 1, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (9, 2, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (10, 2, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (11, 2, 2);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (12, 1, 1);
+INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (13, 2, 2);
 
 -- Le soigneur prepare tous les repas
 INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 1);
@@ -124,17 +224,30 @@ INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 2);
 INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 3);
 INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 4);
 INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 5);
+INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 6);
+INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 7);
+INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 8);
+INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 9);
+INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 10);
+INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 11);
+INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 12);
+INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 13);
 
 /*Boutique (1 boutique en zone 2, geree par la Directrice de magasin)*/
 INSERT INTO Boutique (id_boutique, nom_boutique, type_boutique, id_personnel, id_zone)
     VALUES (1, 'La Savane Shop', 'Souvenirs', 5, 2);
+INSERT INTO Boutique (id_boutique, nom_boutique, type_boutique, id_personnel, id_zone)
+    VALUES (2, 'Jurassic Snacks', 'Restauration', 4, 4);
 
 INSERT INTO Travaille (id_personnel, id_boutique) VALUES (4, 1);
 INSERT INTO Travaille (id_personnel, id_boutique) VALUES (5, 1);
+INSERT INTO Travaille (id_personnel, id_boutique) VALUES (4, 2);
 
 -- 2 chiffres d'affaires differents
 INSERT INTO Chiffre_affaire (id_ca, date_ca, montant, id_boutique) VALUES (1, DATE '2025-01-31', 3450.80, 1);
 INSERT INTO Chiffre_affaire (id_ca, date_ca, montant, id_boutique) VALUES (2, DATE '2025-02-28', 4120.50, 1);
+INSERT INTO Chiffre_affaire (id_ca, date_ca, montant, id_boutique) VALUES (3, DATE '2025-01-31', 2890.40, 2);
+INSERT INTO Chiffre_affaire (id_ca, date_ca, montant, id_boutique) VALUES (4, DATE '2025-02-28', 3315.90, 2);
 
 /*Prestataire + réparation
        Prestataire 1 (BatiZoo)     -> Reparation 1 dans enclos 1

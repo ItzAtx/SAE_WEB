@@ -4,7 +4,7 @@ CREATE TABLE Espece (
     nom_latin VARCHAR(50) PRIMARY KEY,
     nom_usuel VARCHAR(50),
     menace CHAR(1) 
-        CONSTRAINT menace_check CHECK (menace IN ('O', 'N'))
+    CONSTRAINT menace_check CHECK (menace IN ('O', 'N'))
 );
 
 CREATE TABLE Animal (
