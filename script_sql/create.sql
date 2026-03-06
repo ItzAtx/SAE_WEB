@@ -79,6 +79,7 @@ CREATE TABLE Personnel (
     nom_personnel VARCHAR(50),
     prenom_personnel VARCHAR(50),
     mot_de_passe VARCHAR(255),
+    id_connexion VARCHAR(100),
     id_zone INT
 );
 

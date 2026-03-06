@@ -7,11 +7,11 @@ INSERT INTO Fonction (id_fonction, fonction) VALUES (5, 'Directeur de magasin');
 
 
 /*Personnel (sans zone dans un premier temps, contrainte circulaire Zone_zoo <-> Personnel)*/
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_zone) VALUES (1, 'Martin',   'Sophie',   'mdp', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_zone) VALUES (2, 'Dupont',   'Julien',   'mdp', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_zone) VALUES (3, 'Bernard',  'Camille',  'mdp', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_zone) VALUES (4, 'Lefebvre', 'Thomas',   'mdp', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_zone) VALUES (5, 'Moreau',   'Isabelle', 'mdp', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (1, 'Martin',   'Sophie',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'sophie.martin', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (2, 'Dupont',   'Julien',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'julien.dupont', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (3, 'Bernard',  'Camille',  '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'camille.bernard', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (4, 'Lefebvre', 'Thomas',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'thomas.lefebvre', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (5, 'Moreau',   'Isabelle', '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'isabelle.moreau', NULL);
 
 /*Zones (2 zones, responsable = Directeur id=1)*/
 INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (1, 'Zone Afrique', 1);

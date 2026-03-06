@@ -24,27 +24,28 @@
 
                 $id_session = $_SESSION['id']; //Récupération de l'id de l'utilisateur depuis la session
 
-                //Requête préparée et execution
+                //Requête préparée et execution 
                 $requeteP = oci_parse($conn,
-                            "SELECT prenom_personnel, nom_personnel, TO_CHAR(date_entree_personnel,'YYYY-MM-DD') AS date_entree_personnel, identifiant_personnel
-                             FROM Personnel
-                             WHERE numero_personnel = :identifiant"
+                            "SELECT prenom_personnel, nom_personnel, id_connexion, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut
+                             FROM Personnel p, Contrat c
+                             WHERE p.id_personnel = c.id_personnel
+                             AND p.id_personnel = :identifiant"
                         );
                 oci_bind_by_name($requeteP, ":identifiant", $id_session);
                 oci_execute($requeteP);
 
                 //Récupération des données depuis la BDD
-                $row = oci_fetch_array($requeteP, OCI_ASSOC+OCI_RETURN_NULLS);
+                $row = oci_fetch_array($requeteP, OCI_ASSOC);
                 $prenom = $row['PRENOM_PERSONNEL'];
                 $nom = $row['NOM_PERSONNEL'];
-                $date = $row['DATE_ENTREE_PERSONNEL'];
-                $identifiant = $row['IDENTIFIANT_PERSONNEL'];
+                $identifiant = $row['ID_CONNEXION'];
+                $date = $row['DATE_DEBUT'];
             ?>
 
             <form method="post">
                 <label>Prénom</label> <input type="text" value="<?php echo $prenom ?>" name="prenom"> <br><br>
                 <label>Nom</label> <input type="text" value="<?php echo $nom ?>" name="nom"> <br><br>
-                <label>Date d'arrivée</label> <input type="date" value="<?php echo $date ?>" name="date"> <br><br>
+                <label>Début du contrat</label> <input type="date" value="<?php echo $date ?>" name="date"> <br><br>
                 <label>Identifiant</label> <input type="text" value="<?php echo $identifiant ?>" name="identifiant"> <br><br>
                 <input type="submit" value="Mettre à jour">
             </form>
@@ -58,19 +59,28 @@
                         $date = $_POST['date'];
                         $identifiant = $_POST['identifiant'];
 
-                        //Préparation de la requête (mise à jour des données) et execution
+                        //Préparation de la requête (mise à jour des données dans Personnel) et execution
                         $requeteP = oci_parse($conn,
                             "UPDATE Personnel
-                             SET prenom_personnel = :prenom, nom_personnel = :nom, date_entree_personnel = TO_DATE(:date_entree, 'YYYY-MM-DD'), identifiant_personnel = :identifiant_connex
-                             WHERE numero_personnel = :identifiant"
+                             SET prenom_personnel = :prenom, nom_personnel = :nom, id_connexion = :identifiant_connex
+                             WHERE id_personnel = :identifiant"
                         );
                         oci_bind_by_name($requeteP, ":prenom", $prenom);
                         oci_bind_by_name($requeteP, ":nom", $nom);
-                        oci_bind_by_name($requeteP, ":date_entree", $date);
                         oci_bind_by_name($requeteP, ":identifiant_connex", $identifiant);
                         oci_bind_by_name($requeteP, ":identifiant", $id_session);
                         oci_execute($requeteP);
 
+                        //Préparation de la requête (mise à jour des données dans Contrat) et execution
+                        $requeteP = oci_parse($conn,
+                            "UPDATE Contrat
+                             SET date_debut = TO_DATE(:date_debut, 'YYYY-MM-DD')
+                             WHERE id_personnel = :identifiant"
+                        );
+                        oci_bind_by_name($requeteP, ":date_debut", $date);
+                        oci_bind_by_name($requeteP, ":identifiant", $id_session);
+                        oci_execute($requeteP);
+                        
                         oci_commit($conn); //Mise à jour
 
                         $_SESSION['succes'] = "Informations mises à jour !";

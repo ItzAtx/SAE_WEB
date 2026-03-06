@@ -22,43 +22,32 @@
 
                     $id_session = $_SESSION['id']; //Récupération de l'id de l'utilisateur depuis la session
 
-                    //Préparation de la requête (récuperer infos sur l'utilisateur) et execution
+                    //Préparation de la requête et execution
                     $requeteP = oci_parse($conn,
-                            "SELECT *
-                             FROM Personnel
-                             WHERE numero_personnel = :identifiant"
+                            "SELECT p.prenom_personnel, p.nom_personnel, p.id_connexion, c.salaire, c.date_debut, f.fonction
+                             FROM Personnel p, Contrat c, Fonction f
+                             WHERE p.id_personnel = c.id_personnel
+                             AND c.id_fonction = f.id_fonction
+                             AND p.id_personnel = :identifiant"
                     );
                     oci_bind_by_name($requeteP, ":identifiant", $id_session);
                     oci_execute($requeteP);
 
                     //Récupération des données depuis la BDD
-                    $row = oci_fetch_array($requeteP, OCI_ASSOC+OCI_RETURN_NULLS);
-                    $num = $row['NUMERO_PERSONNEL'];
+                    $row = oci_fetch_array($requeteP, OCI_ASSOC);
                     $prenom = $row['PRENOM_PERSONNEL'];
                     $nom = $row['NOM_PERSONNEL'];
-                    $date = $row['DATE_ENTREE_PERSONNEL'];
-                    $identifiant = $row['IDENTIFIANT_PERSONNEL'];
-                    $id_fonction = $row['ID_FONCTION'];
-
-                    //Préparation de la requête (récuperer le nom du poste de l'utilisateur) et execution
-                    $requeteP = oci_parse($conn,
-                            "SELECT nom_fonction
-                             FROM Fonction
-                             WHERE id_fonction = :id_fonction"
-                    );
-                    oci_bind_by_name($requeteP, ":id_fonction", $id_fonction);
-                    oci_execute($requeteP);
-                    
-
-                    //Récupération du poste
-                    $row = oci_fetch_array($requeteP, OCI_ASSOC+OCI_RETURN_NULLS);
-                    $fonction = $row['NOM_FONCTION'];
+                    $identifiant = $row['ID_CONNEXION'];
+                    $salaire = $row['SALAIRE'];
+                    $dateD = $row['DATE_DEBUT'];
+                    $fonction = $row['FONCTION'];
                 ?>
 
-                <div class="info">Numéro de personnel : <?php echo $num; ?></div>
+                <div class="info">Numéro de personnel : <?php echo $id_session; ?></div>
                 <div class="info">Prénom : <?php echo $prenom; ?></div>
                 <div class="info">Nom : <?php echo $nom; ?></div>
-                <div class="info">Date d'entrée : <?php echo $date; ?></div>
+                <div class="info">Début du contrat : <?php echo $dateD; ?></div>
+                <div class="info">Salaire : <?php echo $salaire."€"; ?></div>
                 <div class="info">Identifiant de connexion : <?php echo $identifiant; ?></div>
                 <div class="info">Poste : <?php echo $fonction; ?></div>
                 <a href="modification.php"><button>Modifier</button></a>
@@ -87,8 +76,8 @@
                                     //Préparation de la requête (mise à jour du mdp) et execution
                                     $requeteP = oci_parse($conn,
                                             "UPDATE Personnel
-                                            SET mdp_personnel = :nouveau
-                                            WHERE numero_personnel = :id_session"
+                                            SET mot_de_passe = :nouveau
+                                            WHERE id_personnel = :id_session"
                                     );
                                     oci_bind_by_name($requeteP, ":nouveau", $nouveau);
                                     oci_bind_by_name($requeteP, ":id_session", $id_session);

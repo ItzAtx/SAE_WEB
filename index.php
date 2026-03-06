@@ -10,7 +10,7 @@
             <?php
                 $erreur = "";
 
-                if (isset($_POST['identifiant']) && isset($_POST['mdp'])){
+                if ($_SERVER["REQUEST_METHOD"] == "POST"){
                     if (!empty($_POST['identifiant']) && !empty($_POST['mdp'])){
                         
                         //Récupération des données remplis par l'utilisateur
@@ -22,19 +22,19 @@
 
                         //Préparation de la requête et execution
                         $requeteP = oci_parse($conn,
-                            "SELECT numero_personnel, mdp_personnel
-                             FROM Personnel
-                             WHERE identifiant_personnel = :identifiant"
+                            "SELECT id_personnel, mot_de_passe
+                            FROM Personnel
+                            WHERE id_connexion = :identifiant"
                         );
                         oci_bind_by_name($requeteP, ":identifiant", $id);
                         oci_execute($requeteP);
 
                         //Récupération des données de la BDD
-                        $row = oci_fetch_array($requeteP, OCI_ASSOC+OCI_RETURN_NULLS);
+                        $row = oci_fetch_array($requeteP, OCI_ASSOC);
 
                         //Si row n'est pas vide (signifie qu'il y a des données pour l'identifiant entré) et que le mot de passe est bon
-                        if ($row && password_verify($mdp, $row['MDP_PERSONNEL'])){ 
-                            $_SESSION['id'] = $row['NUMERO_PERSONNEL'];
+                        if ($row && password_verify($mdp, $row['MOT_DE_PASSE'])){ 
+                            $_SESSION['id'] = $row['ID_PERSONNEL'];
                             header("Location: search.php"); //On émmène l'utilisateur à l'accueil
                             exit();
                         } else {
@@ -49,7 +49,7 @@
                         exit();
                     }
                 }
-                
+                    
             ?>
 
             <form method="post">
