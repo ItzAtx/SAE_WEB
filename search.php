@@ -5,7 +5,11 @@ if (!isset($_SESSION['id'])) {
     header("Location: index.php");
     exit();
 }
+?>
 
+<a href="gestion.php"><button>Gérer</button></a>
+
+<?php
 $conn = oci_connect("SYSTEM", "oracle", "192.168.1.3/FREE");
 
 function fetchAllRows($conn, $req, $binds = []) {
