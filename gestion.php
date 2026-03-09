@@ -5,7 +5,8 @@
         exit();
     }
 
-    $conn = oci_connect("SYSTEM", "oracle", "192.168.1.3/FREE"); //Connexion à la BDD
+    include_once("myparam.inc.php");
+    $conn = oci_connect(MYUSER, MYPASS, MYHOST); //Connexion à la BDD
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_personnel'])) {
         $id_personnel_suppr = $_POST['supprimer_id_personnel'];

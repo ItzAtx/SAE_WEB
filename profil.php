@@ -17,8 +17,8 @@
                 <h2>Informations</h2>
                 <?php
 
-                    //$conn = oci_connect("anthonyvauchel", "oracle", "10.1.16.56/oracle2"); //Connexion à la BD fac
-                    $conn = oci_connect("SYSTEM", "oracle", "192.168.1.3/FREE"); //Connexion à la BD locale
+                    include_once("myparam.inc.php");
+                    $conn = oci_connect(MYUSER, MYPASS, MYHOST); //Connexion à la BDD
 
                     $id_session = $_SESSION['id']; //Récupération de l'id de l'utilisateur depuis la session
 
