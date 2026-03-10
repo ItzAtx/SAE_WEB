@@ -1,3 +1,18 @@
+DROP SEQUENCE id_enclos_seq;
+DROP SEQUENCE id_nourriture_seq;
+DROP SEQUENCE id_visiteur_seq;
+DROP SEQUENCE id_prestation_seq;
+DROP SEQUENCE id_prestataire_seq;
+DROP SEQUENCE id_personnel_seq;
+DROP SEQUENCE id_fonction_seq;
+DROP SEQUENCE id_reparation_seq;
+DROP SEQUENCE id_repas_seq;
+DROP SEQUENCE id_soin_seq;
+DROP SEQUENCE id_zone_seq;
+DROP SEQUENCE id_boutique_seq;
+DROP SEQUENCE id_ca_seq;
+DROP SEQUENCE id_contrat_seq;
+
 DROP TABLE IF EXISTS Espece CASCADE CONSTRAINTS;
 DROP TABLE IF EXISTS Cohabiter CASCADE CONSTRAINTS;
 DROP TABLE IF EXISTS Animal CASCADE CONSTRAINTS;

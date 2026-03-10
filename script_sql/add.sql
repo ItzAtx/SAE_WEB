@@ -15,10 +15,10 @@ INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_pas
 
 /*Zones (5 zones, responsable = Directeur id=1)*/
 INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (1, 'Zone Afrique', 1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (2, 'Zone Asie',    1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (3, 'Zone France',    1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (4, 'Zone Dinosaure',    1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (5, 'Zone Aquatique',    1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (2, 'Zone Asie', 1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (3, 'Zone France', 1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (4, 'Zone Dinosaure', 1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (5, 'Zone Aquatique', 1);
 
 -- Rattachement des personnels a leur zone
 UPDATE Personnel SET id_zone = 1 WHERE id_personnel IN (1, 2, 3);
@@ -117,8 +117,8 @@ INSERT INTO Attitre (RFID, id_personnel) VALUES (1012, 3);
 INSERT INTO Attitre (RFID, id_personnel) VALUES (1013, 3);
 
 -- Specialisations du soigneur sur les 3 especes
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Panthera leo',           3);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Loxodonta africana',     3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Panthera leo', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Loxodonta africana', 3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Giraffa camelopardalis', 3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Rattus norvegicus', 3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Columba livia', 3);
@@ -209,14 +209,6 @@ INSERT INTO Consomme (RFID, id_repas) VALUES (1002, 2);
 INSERT INTO Consomme (RFID, id_repas) VALUES (1003, 3);
 INSERT INTO Consomme (RFID, id_repas) VALUES (1004, 4);
 INSERT INTO Consomme (RFID, id_repas) VALUES (1005, 5);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (6, 1, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (7, 1, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (8, 1, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (9, 2, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (10, 2, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (11, 2, 2);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (12, 1, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (13, 2, 2);
 
 -- Le soigneur prepare tous les repas
 INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 1);
@@ -291,3 +283,5 @@ INSERT INTO Prestations (id_prestation, libelle, niveau_contribution) VALUES (4,
 
 INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1001, 1, 3);
 INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1001, 2, 4);
+
+COMMIT;
