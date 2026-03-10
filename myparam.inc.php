@@ -1,0 +1,10 @@
+<?php
+/*
+define("MYHOST","10.1.16.56/oracle2");
+define("MYUSER","anthonyvauchel");
+define("MYPASS","oracle");
+*/
+define("MYHOST","192.168.1.3/FREE");
+define("MYUSER","SYSTEM");
+define("MYPASS","oracle");
+?>
