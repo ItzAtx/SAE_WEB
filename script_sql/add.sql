@@ -8,17 +8,17 @@ INSERT INTO Fonction (id_fonction, fonction) VALUES (5, 'Directeur de magasin');
 
 /*Personnel (sans zone dans un premier temps, contrainte circulaire Zone_zoo <-> Personnel)*/
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (1, 'Belabbas',   'Selma',   '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'selma.belabbas', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (2, 'Delloue',   'Alexandre',   '$2y$10$1kEX7cwJbLO9d4VipsAxMO7mHF.W8tgIqxfIimxHUpaoEuHxyHMry', 'allexandre.delloue', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (2, 'Delloue',   'Alexandre',   '$2y$10$1kEX7cwJbLO9d4VipsAxMO7mHF.W8tgIqxfIimxHUpaoEuHxyHMry', 'alexandre.delloue', NULL);
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (3, 'Vauchel',  'Anthony',  '$2y$10$3xXH2SEfTG7y0uSK52NVWeFIXyn.Nx20008ikm6AoX5uAwME.CaOO', 'anthony.vauchel', NULL);
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (4, 'Katr', 'Jhin',   '$2y$10$m5i88BDPM8UFFu90sAFLieTQhfArbbAOHiBDW1wVGMlL5LLWBMdiG', 'jhin.katr', NULL);
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (5, 'Mamamia',   'Mario', '$2y$10$sVvv6tJBa912aNd.5JBx.erYcDIHsirKaST7vHt5ptx/X7.hc3EFa', 'mario.mamamia', NULL);
 
 /*Zones (5 zones, responsable = Directeur id=1)*/
 INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (1, 'Zone Afrique', 1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (2, 'Zone Asie',    1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (3, 'Zone France',    1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (4, 'Zone Dinosaure',    1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (5, 'Zone Aquatique',    1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (2, 'Zone Asie', 1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (3, 'Zone France', 1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (4, 'Zone Dinosaure', 1);
+INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (5, 'Zone Aquatique', 1);
 
 -- Rattachement des personnels a leur zone
 UPDATE Personnel SET id_zone = 1 WHERE id_personnel IN (1, 2, 3);
@@ -117,8 +117,8 @@ INSERT INTO Attitre (RFID, id_personnel) VALUES (1012, 3);
 INSERT INTO Attitre (RFID, id_personnel) VALUES (1013, 3);
 
 -- Specialisations du soigneur sur les 3 especes
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Panthera leo',           3);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Loxodonta africana',     3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Panthera leo', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Loxodonta africana', 3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Giraffa camelopardalis', 3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Rattus norvegicus', 3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Columba livia', 3);
@@ -128,52 +128,38 @@ INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Testudo graeca', 3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Carcharodon carcharias', 3);
 
 /*Soins (1 soin par animal, tous prodigues par le soigneur id=3)*/
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (1, DATE '2025-02-01', 'Simple', 1001);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (2, DATE '2025-02-05', 'Simple',  1002);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (3, DATE '2025-02-10', 'Complexe',  1003);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (4, DATE '2025-02-15', 'Simple', 1004);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (5, DATE '2025-02-20', 'Complexe',  1005);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (6, DATE '2025-02-22', 'Simple', 1006);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (7, DATE '2025-02-23', 'Simple', 1007);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (8, DATE '2025-02-24', 'Simple', 1008);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (9, DATE '2025-02-25', 'Complexe', 1009);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (10, DATE '2025-02-26', 'Complexe', 1010);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (11, DATE '2025-02-27', 'Complexe', 1011);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (12, DATE '2025-02-28', 'Simple', 1012);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (13, DATE '2025-03-01', 'Complexe', 1013);
-
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 1);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 2);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 3);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 4);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 5);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 6);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 7);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 8);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 9);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 10);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 11);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 12);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 13);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (1, DATE '2025-02-01', 'Simple', 3, 1001);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (2, DATE '2025-02-05', 'Simple', 3,  1002);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (3, DATE '2025-02-10', 'Complexe', 3, 1003);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (4, DATE '2025-02-15', 'Simple', 3, 1004);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (5, DATE '2025-02-20', 'Complexe', 3, 1005);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (6, DATE '2025-02-22', 'Simple', 3, 1006);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (7, DATE '2025-02-23', 'Simple', 3, 1007);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (8, DATE '2025-02-24', 'Simple', 3, 1008);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (9, DATE '2025-02-25', 'Complexe', 3, 1009);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (10, DATE '2025-02-26', 'Complexe', 3, 1010);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (11, DATE '2025-02-27', 'Complexe', 3, 1011);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (12, DATE '2025-02-28', 'Simple', 3, 1012);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (13, DATE '2025-03-01', 'Complexe', 3, 1013);
 
 /*Nourriture (2 types partages par tous les animaux)*/
 INSERT INTO Nourriture (id_nourriture, nom) VALUES (1, 'Viande fraiche');
 INSERT INTO Nourriture (id_nourriture, nom) VALUES (2, 'Fruits et legumes');
 
 /*Repas (1 par animal) + CONTIENT + CONSOMME + PREPARE*/
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (1, 'Repas Simba',  DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (2, 'Repas Nala',   DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (3, 'Repas Dumbo',  DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (4, 'Repas Babar',  DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (5, 'Repas Melman', DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (6, 'Repas Ratatouille', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (7, 'Repas Kled', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (8, 'Repas Babouche', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (9, 'Repas Trucmuche', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (10, 'Repas Skaarl', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (11, 'Repas Chogathe', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (12, 'Repas Franklin', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (13, 'Repas Fizz', DATE '2025-02-02');
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (1, 'Repas Simba',  DATE '2025-02-01', 1001, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (2, 'Repas Nala',   DATE '2025-02-01', 1002, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (3, 'Repas Dumbo',  DATE '2025-02-01', 1003, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (4, 'Repas Babar',  DATE '2025-02-01', 1004, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (5, 'Repas Melman', DATE '2025-02-01', 1005, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (6, 'Repas Ratatouille', DATE '2025-02-02', 1006, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (7, 'Repas Kled', DATE '2025-02-02', 1007, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (8, 'Repas Babouche', DATE '2025-02-02', 1008, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (9, 'Repas Trucmuche', DATE '2025-02-02', 1009, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (10, 'Repas Skaarl', DATE '2025-02-02', 1010, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (11, 'Repas Chogathe', DATE '2025-02-02', 1011, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (12, 'Repas Franklin', DATE '2025-02-02', 1012, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (13, 'Repas Fizz', DATE '2025-02-02', 1013, 3);
 
 -- Chaque repas contient les 2 nourritures
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (1, 1, 3);
@@ -202,36 +188,6 @@ INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (10, 2, 1);
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (11, 2, 2);
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (12, 1, 1);
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (13, 2, 2);
-
--- Chaque animal consomme son repas
-INSERT INTO Consomme (RFID, id_repas) VALUES (1001, 1);
-INSERT INTO Consomme (RFID, id_repas) VALUES (1002, 2);
-INSERT INTO Consomme (RFID, id_repas) VALUES (1003, 3);
-INSERT INTO Consomme (RFID, id_repas) VALUES (1004, 4);
-INSERT INTO Consomme (RFID, id_repas) VALUES (1005, 5);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (6, 1, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (7, 1, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (8, 1, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (9, 2, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (10, 2, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (11, 2, 2);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (12, 1, 1);
-INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (13, 2, 2);
-
--- Le soigneur prepare tous les repas
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 1);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 2);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 3);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 4);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 5);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 6);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 7);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 8);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 9);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 10);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 11);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 12);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 13);
 
 /*Boutique (1 boutique en zone 2, geree par la Directrice de magasin)*/
 INSERT INTO Boutique (id_boutique, nom_boutique, type_boutique, id_personnel, id_zone)
@@ -291,3 +247,5 @@ INSERT INTO Prestations (id_prestation, libelle, niveau_contribution) VALUES (4,
 
 INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1001, 1, 3);
 INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1001, 2, 4);
+
+COMMIT;
