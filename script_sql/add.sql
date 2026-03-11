@@ -142,38 +142,24 @@ INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (1
 INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (12, DATE '2025-02-28', 'Simple', 3, 1012);
 INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (13, DATE '2025-03-01', 'Complexe', 3, 1013);
 
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 1);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 2);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 3);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 4);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 5);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 6);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 7);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 8);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 9);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 10);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 11);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 12);
--- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 13);
-
 /*Nourriture (2 types partages par tous les animaux)*/
 INSERT INTO Nourriture (id_nourriture, nom) VALUES (1, 'Viande fraiche');
 INSERT INTO Nourriture (id_nourriture, nom) VALUES (2, 'Fruits et legumes');
 
 /*Repas (1 par animal) + CONTIENT + CONSOMME + PREPARE*/
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (1, 'Repas Simba',  DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (2, 'Repas Nala',   DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (3, 'Repas Dumbo',  DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (4, 'Repas Babar',  DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (5, 'Repas Melman', DATE '2025-02-01');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (6, 'Repas Ratatouille', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (7, 'Repas Kled', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (8, 'Repas Babouche', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (9, 'Repas Trucmuche', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (10, 'Repas Skaarl', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (11, 'Repas Chogathe', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (12, 'Repas Franklin', DATE '2025-02-02');
-INSERT INTO Repas (id_repas, nom_repas, date_repas) VALUES (13, 'Repas Fizz', DATE '2025-02-02');
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (1, 'Repas Simba',  DATE '2025-02-01', 1001, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (2, 'Repas Nala',   DATE '2025-02-01', 1002, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (3, 'Repas Dumbo',  DATE '2025-02-01', 1003, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (4, 'Repas Babar',  DATE '2025-02-01', 1004, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (5, 'Repas Melman', DATE '2025-02-01', 1005, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (6, 'Repas Ratatouille', DATE '2025-02-02', 1006, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (7, 'Repas Kled', DATE '2025-02-02', 1007, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (8, 'Repas Babouche', DATE '2025-02-02', 1008, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (9, 'Repas Trucmuche', DATE '2025-02-02', 1009, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (10, 'Repas Skaarl', DATE '2025-02-02', 1010, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (11, 'Repas Chogathe', DATE '2025-02-02', 1011, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (12, 'Repas Franklin', DATE '2025-02-02', 1012, 3);
+INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (13, 'Repas Fizz', DATE '2025-02-02', 1013, 3);
 
 -- Chaque repas contient les 2 nourritures
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (1, 1, 3);
@@ -202,28 +188,6 @@ INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (10, 2, 1);
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (11, 2, 2);
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (12, 1, 1);
 INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (13, 2, 2);
-
--- Chaque animal consomme son repas
-INSERT INTO Consomme (RFID, id_repas) VALUES (1001, 1);
-INSERT INTO Consomme (RFID, id_repas) VALUES (1002, 2);
-INSERT INTO Consomme (RFID, id_repas) VALUES (1003, 3);
-INSERT INTO Consomme (RFID, id_repas) VALUES (1004, 4);
-INSERT INTO Consomme (RFID, id_repas) VALUES (1005, 5);
-
--- Le soigneur prepare tous les repas
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 1);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 2);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 3);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 4);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 5);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 6);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 7);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 8);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 9);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 10);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 11);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 12);
-INSERT INTO Prepare (id_personnel, id_repas) VALUES (3, 13);
 
 /*Boutique (1 boutique en zone 2, geree par la Directrice de magasin)*/
 INSERT INTO Boutique (id_boutique, nom_boutique, type_boutique, id_personnel, id_zone)

@@ -147,24 +147,14 @@ CREATE TABLE Parrainer (
     CONSTRAINT pk_parrainer PRIMARY KEY (RFID, id_visiteur, id_prestation)
 );
 
-CREATE TABLE Consomme (
-    RFID INT,
-    id_repas INT,
-    CONSTRAINT pk_consomme PRIMARY KEY (RFID, id_repas)
-);
-
 CREATE SEQUENCE id_repas_seq START WITH 1;
 CREATE TABLE Repas (
     id_repas INT DEFAULT id_repas_seq.nextval,
     nom_repas VARCHAR(50),
     date_repas DATE,
-    CONSTRAINT pk_id_repas PRIMARY KEY (id_repas)
-);
-
-CREATE TABLE Prepare (
+    RFID INT,
     id_personnel INT,
-    id_repas INT,
-    CONSTRAINT pk_prepare PRIMARY KEY (id_personnel, id_repas)
+    CONSTRAINT pk_id_repas PRIMARY KEY (id_repas)
 );
 
 CREATE TABLE Attitre (
@@ -370,15 +360,6 @@ ALTER TABLE Soins
 ADD CONSTRAINT fk_id_personnel_soins
 FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
 
-/*Prepare*/
-ALTER TABLE Prepare
-ADD CONSTRAINT fk_id_personnel_prepare
-FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
-
-ALTER TABLE Prepare
-ADD CONSTRAINT fk_id_repas_prepare
-FOREIGN KEY (id_repas) REFERENCES Repas(id_repas);
-
 /*Contient*/
 ALTER TABLE Contient
 ADD CONSTRAINT fk_id_repas_contient
@@ -388,13 +369,13 @@ ALTER TABLE Contient
 ADD CONSTRAINT fk_id_nourriture_contient
 FOREIGN KEY (id_nourriture) REFERENCES Nourriture(id_nourriture);
 
-/*Consomme*/
-ALTER TABLE Consomme
-ADD CONSTRAINT fk_rfid_consomme
+/*Repas*/
+ALTER TABLE Repas
+ADD CONSTRAINT fk_RFID_repas
 FOREIGN KEY (RFID) REFERENCES Animal(RFID);
 
-ALTER TABLE Consomme
-ADD CONSTRAINT fk_id_repas_consomme
-FOREIGN KEY (id_repas) REFERENCES Repas(id_repas);
+ALTER TABLE Repas 
+ADD CONSTRAINT fk_id_personnel_repas
+FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
 
 COMMIT;
