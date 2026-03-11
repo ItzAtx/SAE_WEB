@@ -8,7 +8,7 @@ INSERT INTO Fonction (id_fonction, fonction) VALUES (5, 'Directeur de magasin');
 
 /*Personnel (sans zone dans un premier temps, contrainte circulaire Zone_zoo <-> Personnel)*/
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (1, 'Belabbas',   'Selma',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'selma.belabbas', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (2, 'Delloue',   'Alexandre',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'allexandre.delloue', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (2, 'Delloue',   'Alexandre',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'alexandre.delloue', NULL);
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (3, 'Vauchel',  'Anthony',  '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'anthony.vauchel', NULL);
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (4, 'Katr', 'Jhin',   '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'jhin.katr', NULL);
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (5, 'Mamamia',   'Mario', '$2a$12$NodASkvJSnjP1H3FXTEYeerpni7REdmEDCIYWwvMI0Az3RP7Y5cqi', 'mario.mamamia', NULL);
@@ -128,33 +128,33 @@ INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Testudo graeca', 3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Carcharodon carcharias', 3);
 
 /*Soins (1 soin par animal, tous prodigues par le soigneur id=3)*/
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (1, DATE '2025-02-01', 'Simple', 1001);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (2, DATE '2025-02-05', 'Simple',  1002);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (3, DATE '2025-02-10', 'Complexe',  1003);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (4, DATE '2025-02-15', 'Simple', 1004);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (5, DATE '2025-02-20', 'Complexe',  1005);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (6, DATE '2025-02-22', 'Simple', 1006);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (7, DATE '2025-02-23', 'Simple', 1007);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (8, DATE '2025-02-24', 'Simple', 1008);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (9, DATE '2025-02-25', 'Complexe', 1009);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (10, DATE '2025-02-26', 'Complexe', 1010);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (11, DATE '2025-02-27', 'Complexe', 1011);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (12, DATE '2025-02-28', 'Simple', 1012);
-INSERT INTO Soins (id_soin, date_soin, complexite, RFID) VALUES (13, DATE '2025-03-01', 'Complexe', 1013);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (1, DATE '2025-02-01', 'Simple', 3, 1001);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (2, DATE '2025-02-05', 'Simple', 3,  1002);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (3, DATE '2025-02-10', 'Complexe', 3, 1003);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (4, DATE '2025-02-15', 'Simple', 3, 1004);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (5, DATE '2025-02-20', 'Complexe', 3, 1005);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (6, DATE '2025-02-22', 'Simple', 3, 1006);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (7, DATE '2025-02-23', 'Simple', 3, 1007);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (8, DATE '2025-02-24', 'Simple', 3, 1008);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (9, DATE '2025-02-25', 'Complexe', 3, 1009);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (10, DATE '2025-02-26', 'Complexe', 3, 1010);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (11, DATE '2025-02-27', 'Complexe', 3, 1011);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (12, DATE '2025-02-28', 'Simple', 3, 1012);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (13, DATE '2025-03-01', 'Complexe', 3, 1013);
 
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 1);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 2);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 3);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 4);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 5);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 6);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 7);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 8);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 9);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 10);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 11);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 12);
-INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 13);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 1);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 2);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 3);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 4);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 5);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 6);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 7);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 8);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 9);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 10);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 11);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 12);
+-- INSERT INTO Prodigue (id_personnel, id_soin) VALUES (3, 13);
 
 /*Nourriture (2 types partages par tous les animaux)*/
 INSERT INTO Nourriture (id_nourriture, nom) VALUES (1, 'Viande fraiche');

@@ -178,14 +178,9 @@ CREATE TABLE Soins (
     id_soin INT DEFAULT id_soin_seq.nextval,
     date_soin DATE,
     complexite VARCHAR(20),
+    id_personnel INT,
     RFID INT,
     CONSTRAINT pk_soins PRIMARY KEY (id_soin)
-);
-
-CREATE TABLE Prodigue (
-    id_personnel INT,
-    id_soin INT,
-    CONSTRAINT pk_prodigue PRIMARY KEY (id_personnel, id_soin)
 );
 
 CREATE SEQUENCE id_zone_seq START WITH 1;
@@ -371,14 +366,9 @@ ALTER TABLE Soins
 ADD CONSTRAINT fk_rfid_soins
 FOREIGN KEY (RFID) REFERENCES Animal(RFID);
 
-/*Prodigue*/
-ALTER TABLE Prodigue
-ADD CONSTRAINT fk_id_personnel_prodigue
+ALTER TABLE Soins
+ADD CONSTRAINT fk_id_personnel_soins
 FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
-
-ALTER TABLE Prodigue
-ADD CONSTRAINT fk_id_soin_prodigue
-FOREIGN KEY (id_soin) REFERENCES Soins(id_soin);
 
 /*Prepare*/
 ALTER TABLE Prepare
@@ -406,3 +396,5 @@ FOREIGN KEY (RFID) REFERENCES Animal(RFID);
 ALTER TABLE Consomme
 ADD CONSTRAINT fk_id_repas_consomme
 FOREIGN KEY (id_repas) REFERENCES Repas(id_repas);
+
+COMMIT;
