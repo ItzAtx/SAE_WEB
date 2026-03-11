@@ -8,10 +8,11 @@ if (!isset($_SESSION['id'])) {
 ?>
 
 <form method="get" action="gestion.php">
-    <label><input type="checkbox" name="tablePersonnel" value="personnel"> Personnel</label>
-    <label><input type="checkbox" name="tableEnclos" value="enclos"> Enclos</label>
-    <label><input type="checkbox" name="tableBoutiques" value="boutique"> Boutiques</label>
-    <label><input type="checkbox" name="tableAnimaux" value="animal"> Animaux</label>
+    <label><input type="checkbox" name="tablePersonnel" value="1"> Personnel</label>
+    <label><input type="checkbox" name="tableEnclos" value="1"> Enclos</label>
+    <label><input type="checkbox" name="tableBoutiques" value="1"> Boutiques</label>
+    <label><input type="checkbox" name="tableAnimaux" value="1"> Animaux</label>
+    <label><input type="checkbox" name="tableEspeces" value="1"> Espèces</label>
     <input type="submit" value="Gérer">
 </form>
 
