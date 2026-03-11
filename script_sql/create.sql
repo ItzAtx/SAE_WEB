@@ -18,14 +18,12 @@ CREATE TABLE Animal (
     nom_latin VARCHAR(50)
 );
 
-CREATE SEQUENCE id_enclos_seq START WITH 1;
 CREATE TABLE Enclos (
-    id_enclos INT DEFAULT id_enclos_seq.nextval,
+    id_enclos INT PRIMARY KEY,
     latitude FLOAT,
     longitude FLOAT,
     surface FLOAT,
-    id_zone INT,
-    CONSTRAINT pk_id_enclos PRIMARY KEY (id_enclos)
+    id_zone INT
 );
 
 CREATE TABLE Possede (
@@ -40,42 +38,34 @@ CREATE TABLE Cohabiter (
     CONSTRAINT pk_cohabite PRIMARY KEY (nom_latin_est_cohabiter_par, nom_latin_cohabite_avec)
 );
 
-CREATE SEQUENCE id_nourriture_seq START WITH 1;
 CREATE TABLE Nourriture (
-    id_nourriture INT DEFAULT id_nourriture_seq.nextval,
-    nom VARCHAR(50),
-    CONSTRAINT pk_id_nourriture PRIMARY KEY (id_nourriture)
+    id_nourriture INT PRIMARY KEY NOT NULL,
+    nom VARCHAR(50)
 );
 
-CREATE SEQUENCE id_visiteur_seq START WITH 1;
 CREATE TABLE Visiteurs (
-    id_visiteur INT DEFAULT id_visiteur_seq.nextval,
+    id_visiteur INT PRIMARY KEY NOT NULL,
     nom_visiteur VARCHAR(50),
     prenom_visiteur VARCHAR(50),
-    numero_telephone NUMBER(10),
-    CONSTRAINT pk_id_visiteurs PRIMARY KEY (id_visiteur)
+    numero_telephone NUMBER(10)
 );
 
-CREATE SEQUENCE id_prestation_seq START WITH 1;
 CREATE TABLE Prestations (
-    id_prestation int DEFAULT id_prestation_seq.nextval,
+    id_prestation int PRIMARY KEY NOT NULL,
     libelle VARCHAR(50),
     niveau_contribution VARCHAR(6) 
-        CONSTRAINT contribution_check CHECK (niveau_contribution IN ('Bronze', 'Argent', 'Or')),
-    CONSTRAINT pk_id_prestation PRIMARY KEY (id_prestation)
+        CONSTRAINT contribution_check CHECK (niveau_contribution IN ('Bronze', 'Argent', 'Or'))
 );
 
 CREATE TABLE Particularite (
     libelle_particularite VARCHAR(50) PRIMARY KEY NOT NULL
 );
 
-CREATE SEQUENCE id_prestataire_seq START WITH 1;
 CREATE TABLE Prestataire (
-    id_prestataire INT DEFAULT id_prestataire_seq.nextval,
+    id_prestataire INT PRIMARY KEY,
     adresse VARCHAR(50),
     nom_societte VARCHAR(50),
-    telephone_prestataire NUMBER(10),
-    CONSTRAINT pk_id_prestataire PRIMARY KEY (id_prestataire)
+    telephone_prestataire NUMBER(10)
 );
 
 CREATE TABLE Specialiser (
@@ -84,15 +74,13 @@ CREATE TABLE Specialiser (
     CONSTRAINT pk_specialiter PRIMARY KEY (nom_latin, id_personnel)
 );
 
-CREATE SEQUENCE id_personnel_seq START WITH 1;
 CREATE TABLE Personnel (
-    id_personnel INT DEFAULT id_personnel_seq.nextval,
+    id_personnel INT PRIMARY KEY,
     nom_personnel VARCHAR(50),
     prenom_personnel VARCHAR(50),
     mot_de_passe VARCHAR(255),
     id_connexion VARCHAR(100),
-    id_zone INT,
-    CONSTRAINT pk_id_personnel PRIMARY KEY (id_personnel)
+    id_zone INT
 );
 
 CREATE TABLE Chef (
@@ -101,22 +89,18 @@ CREATE TABLE Chef (
     CONSTRAINT pk_chef PRIMARY KEY (id_personnel_manager_de, id_personnel_est_manager_par)
 );
 
-CREATE SEQUENCE id_contrat_seq START WITH 1;
 CREATE TABLE Contrat (
-    id_contrat INT DEFAULT id_contrat_seq.nextval,
+    id_contrat INT PRIMARY KEY,
     salaire DECIMAL(10, 2),
     date_debut DATE,
     date_fin DATE,
     id_fonction INT,
-    id_personnel INT,
-    CONSTRAINT pk_id_contrat PRIMARY KEY (id_contrat)
+    id_personnel INT
 );
 
-CREATE SEQUENCE id_fonction_seq START WITH 1;
 CREATE TABLE Fonction (
-    id_fonction INT DEFAULT id_fonction_seq.nextval,
-    fonction VARCHAR(100),
-    CONSTRAINT pk_id_fonction PRIMARY KEY (id_fonction)
+    id_fonction INT PRIMARY KEY,
+    fonction VARCHAR(100)
 );
 
 CREATE TABLE Entretient (
@@ -125,13 +109,11 @@ CREATE TABLE Entretient (
     CONSTRAINT pk_entretient PRIMARY KEY (id_personnel, id_reparation)
 );
 
-CREATE SEQUENCE id_reparation_seq START WITH 1;
 CREATE TABLE Reparation (
-    id_reparation INT DEFAULT id_reparation_seq.nextval,
+    id_reparation INT PRIMARY KEY,
     nature_reparation VARCHAR(50),
     libelle VARCHAR(100),
-    id_enclos INT,
-    CONSTRAINT pk_id_reparation PRIMARY KEY (id_reparation)
+    id_enclos INT
 );
 
 CREATE TABLE Participe (
@@ -147,14 +129,22 @@ CREATE TABLE Parrainer (
     CONSTRAINT pk_parrainer PRIMARY KEY (RFID, id_visiteur, id_prestation)
 );
 
-CREATE SEQUENCE id_repas_seq START WITH 1;
-CREATE TABLE Repas (
-    id_repas INT DEFAULT id_repas_seq.nextval,
-    nom_repas VARCHAR(50),
-    date_repas DATE,
+CREATE TABLE Consomme (
     RFID INT,
+    id_repas INT,
+    CONSTRAINT pk_consomme PRIMARY KEY (RFID, id_repas)
+);
+
+CREATE TABLE Repas (
+    id_repas INT PRIMARY KEY,
+    nom_repas VARCHAR(50),
+    date_repas DATE
+);
+
+CREATE TABLE Prepare (
     id_personnel INT,
-    CONSTRAINT pk_id_repas PRIMARY KEY (id_repas)
+    id_repas INT,
+    CONSTRAINT pk_prepare PRIMARY KEY (id_personnel, id_repas)
 );
 
 CREATE TABLE Attitre (
@@ -163,22 +153,24 @@ CREATE TABLE Attitre (
     CONSTRAINT pk_attire PRIMARY KEY (RFID, id_personnel)
 );
 
-CREATE SEQUENCE id_soin_seq START WITH 1;
 CREATE TABLE Soins (
-    id_soin INT DEFAULT id_soin_seq.nextval,
+    id_soin INT,
     date_soin DATE,
     complexite VARCHAR(20),
-    id_personnel INT,
     RFID INT,
-    CONSTRAINT pk_soins PRIMARY KEY (id_soin)
+    CONSTRAINT pk_soins PRIMARY KEY (RFID, id_soin)
 );
 
-CREATE SEQUENCE id_zone_seq START WITH 1;
-CREATE TABLE Zone_zoo (
-    id_zone INT DEFAULT id_zone_seq.nextval,
-    libelle VARCHAR(50),
+CREATE TABLE Prodigue (
     id_personnel INT,
-    CONSTRAINT pk_id_zone PRIMARY KEY (id_zone)
+    id_soin INT,
+    CONSTRAINT pk_prodigue PRIMARY KEY (id_personnel, id_soin)
+);
+
+CREATE TABLE Zone_zoo (
+    id_zone INT PRIMARY KEY,
+    libelle VARCHAR(50),
+    id_personnel INT
 );
 
 CREATE TABLE Travaille (
@@ -187,19 +179,16 @@ CREATE TABLE Travaille (
     CONSTRAINT pk_travaille PRIMARY KEY (id_personnel, id_boutique)
 );
 
-CREATE SEQUENCE id_boutique_seq START WITH 1;
 CREATE TABLE Boutique (
-    id_boutique INT DEFAULT id_boutique_seq.nextval,
+    id_boutique INT PRIMARY KEY,
     nom_boutique VARCHAR(50),
     type_boutique VARCHAR(50),
     id_personnel INT,
-    id_zone INT,
-    CONSTRAINT pk_id_boutique PRIMARY KEY (id_boutique)
+    id_zone INT
 );
 
-CREATE SEQUENCE id_ca_seq START WITH 1;
 CREATE TABLE Chiffre_affaire (
-    id_ca INT DEFAULT id_ca_seq.nextval,
+    id_ca INT,
     date_ca DATE,
     montant FLOAT,
     id_boutique INT,
@@ -356,9 +345,23 @@ ALTER TABLE Soins
 ADD CONSTRAINT fk_rfid_soins
 FOREIGN KEY (RFID) REFERENCES Animal(RFID);
 
-ALTER TABLE Soins
-ADD CONSTRAINT fk_id_personnel_soins
+/*Prodigue*/
+ALTER TABLE Prodigue
+ADD CONSTRAINT fk_id_personnel_prodigue
 FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
+
+ALTER TABLE Prodigue
+ADD CONSTRAINT fk_id_soin_prodigue
+FOREIGN KEY (id_soin) REFERENCES Soins(id_soin);
+
+/*Prepare*/
+ALTER TABLE Prepare
+ADD CONSTRAINT fk_id_personnel_prepare
+FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
+
+ALTER TABLE Prepare
+ADD CONSTRAINT fk_id_repas_prepare
+FOREIGN KEY (id_repas) REFERENCES Repas(id_repas);
 
 /*Contient*/
 ALTER TABLE Contient
@@ -369,13 +372,11 @@ ALTER TABLE Contient
 ADD CONSTRAINT fk_id_nourriture_contient
 FOREIGN KEY (id_nourriture) REFERENCES Nourriture(id_nourriture);
 
-/*Repas*/
-ALTER TABLE Repas
-ADD CONSTRAINT fk_RFID_repas
+/*Consomme*/
+ALTER TABLE Consomme
+ADD CONSTRAINT fk_rfid_consomme
 FOREIGN KEY (RFID) REFERENCES Animal(RFID);
 
-ALTER TABLE Repas 
-ADD CONSTRAINT fk_id_personnel_repas
-FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
-
-COMMIT;
+ALTER TABLE Consomme
+ADD CONSTRAINT fk_id_repas_consomme
+FOREIGN KEY (id_repas) REFERENCES Repas(id_repas);

@@ -7,7 +7,13 @@ if (!isset($_SESSION['id'])) {
 }
 ?>
 
-<a href="gestion.php"><button>Gérer</button></a>
+<form method="get" action="gestion.php">
+    <label><input type="checkbox" name="tablePersonnel" value="personnel"> Personnel</label>
+    <label><input type="checkbox" name="tableEnclos" value="enclos"> Enclos</label>
+    <label><input type="checkbox" name="tableBoutiques" value="boutique"> Boutiques</label>
+    <label><input type="checkbox" name="tableAnimaux" value="animal"> Animaux</label>
+    <input type="submit" value="Gérer">
+</form>
 
 <?php
     include_once("myparam.inc.php");
