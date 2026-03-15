@@ -53,11 +53,11 @@
         $params = [];
         foreach (['tablePersonnel','tableEnclos','tableBoutiques','tableAnimaux','tableEspeces'] as $t) {
             if (!empty($_POST[$t])) {
-                $params[] = $t . '=' . urlencode($_POST[$t]);
+                $params[] = $t.'='.$_POST[$t]; //Si la case est cochée, on l'ajoute dans la liste des tables à garder
             }
         }
-        $query = count($params) ? '?' . implode('&', $params) : '';
-        header("Location: gestion.php" . $query);
+        $url = count($params) ? '?'.implode('&', $params) : ''; //S'il y a au moins une table, alors on la met dans l'url, sinon on ne met rien
+        header("Location: gestion.php" . $url);
         exit();
     }
 
@@ -105,13 +105,60 @@
         );
     }
 
+    function deleteAnimal($conn, $rfid) {
+        /*Entrée :
+        -Variable de la connexion
+        -RFID de l'animal à supprimer
+
+        Supprime un animal et toutes ses dépendances :
+        Attitre, Soins, Parrainer, Contient (via Repas), Repas, Animal
+        On met aussi à NULL les références père/mère des autres animaux*/
+
+        //Suppression dans Contient pour chaque repas de l'animal
+        $reqRepas = oci_parse($conn, "SELECT id_repas FROM Repas WHERE RFID = :rfid");
+        oci_bind_by_name($reqRepas, ':rfid', $rfid);
+        oci_execute($reqRepas, OCI_NO_AUTO_COMMIT);
+        while ($r = oci_fetch_assoc($reqRepas)) {
+            deleteWhere($conn, 'Contient', 'id_repas', $r['ID_REPAS']);
+        }
+
+        //Suppression des liens père/mère vers cet animal
+        execQuery($conn, "UPDATE Animal SET RFID_a_pour_pere = NULL WHERE RFID_a_pour_pere = :rfid", [':rfid' => $rfid]);
+        execQuery($conn, "UPDATE Animal SET RFID_a_pour_mere = NULL WHERE RFID_a_pour_mere = :rfid", [':rfid' => $rfid]);
+
+        //Suppressions simples dans les autres tables
+        deleteWhere($conn, 'Attitre', 'RFID', $rfid);
+        deleteWhere($conn, 'Soins', 'RFID', $rfid);
+        deleteWhere($conn, 'Parrainer', 'RFID', $rfid);
+        deleteWhere($conn, 'Repas', 'RFID', $rfid);
+        deleteWhere($conn, 'Animal', 'RFID', $rfid);
+    }
+
     /* =========================
     SUPPRESSION PERSONNEL
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_personnel'])) {
         $id = $_POST['supprimer_id_personnel'];
-        deleteWhere($conn, 'Contrat', 'id_personnel', $id); //Suppression dans Contrat
-        deleteWhere($conn, 'Personnel', 'id_personnel', $id); //Suppression dans Personnel
+
+        //Suppression dans Contient pour chaque repas préparé par ce personnel
+        $reqRepas = oci_parse($conn, "SELECT id_repas FROM Repas WHERE id_personnel = :id");
+        oci_bind_by_name($reqRepas, ':id', $id);
+        oci_execute($reqRepas);
+        while ($r = oci_fetch_assoc($reqRepas)) {
+            deleteWhere($conn, 'Contient', 'id_repas', $r['ID_REPAS']);
+        }
+
+        //Suppressions simples dans les autres tables
+        deleteWhere($conn, 'Chef', 'id_personnel_manager_de', $id);
+        deleteWhere($conn, 'Chef', 'id_personnel_est_manager_par', $id);
+        deleteWhere($conn, 'Specialiser', 'id_personnel', $id);
+        deleteWhere($conn, 'Attitre', 'id_personnel', $id);
+        deleteWhere($conn, 'Soins', 'id_personnel', $id);
+        deleteWhere($conn, 'Repas', 'id_personnel', $id);
+        deleteWhere($conn, 'Entretient', 'id_personnel', $id);
+        deleteWhere($conn, 'Travaille', 'id_personnel', $id);
+        deleteWhere($conn, 'Contrat', 'id_personnel', $id);
+        deleteWhere($conn, 'Personnel', 'id_personnel', $id);
         oci_commit($conn);
         redirectSelf();
     }
@@ -182,9 +229,19 @@
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_enclos'])) {
         $id = $_POST['supprimer_id_enclos'];
-        deleteWhere($conn, 'Possede', 'id_enclos', $id); //Suppression dans Possede
-        deleteWhere($conn, 'Reparation', 'id_enclos', $id); //Suppression dans Reparation
-        deleteWhere($conn, 'Enclos', 'id_enclos', $id); //Suppression dans Enclos
+
+        //Suppression en cascade de tous les animaux de l'enclos
+        $reqAnimaux = oci_parse($conn, "SELECT RFID FROM Animal WHERE id_enclos = :id");
+        oci_bind_by_name($reqAnimaux, ':id', $id);
+        oci_execute($reqAnimaux, OCI_NO_AUTO_COMMIT);
+        while ($a = oci_fetch_assoc($reqAnimaux)) {
+            deleteAnimal($conn, $a['RFID']);
+        }
+
+        //Suppressions simples dans les autres tables
+        deleteWhere($conn, 'Possede', 'id_enclos', $id);
+        deleteWhere($conn, 'Reparation', 'id_enclos', $id);
+        deleteWhere($conn, 'Enclos', 'id_enclos', $id);
         oci_commit($conn);
         redirectSelf();
     }
@@ -277,6 +334,7 @@
                 "SELECT id_personnel FROM Personnel WHERE prenom_personnel || ' ' || nom_personnel = :responsable",
                 [":responsable" => $_POST['edit_responsable_boutique']]
             );
+            $id_zone = getIdZone($conn, $_POST['edit_zone_boutique']); //Récupération de l'id_zone
             //Modification des données dans Boutique
             execQuery($conn,
                 "UPDATE Boutique SET nom_boutique=:nom, type_boutique=:type, id_personnel=:id_personnel, id_zone=:id_zone 
@@ -293,11 +351,7 @@
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_rfid'])) {
         $rfid = $_POST['supprimer_rfid'];
-        deleteWhere($conn, 'Attitre', 'RFID', $rfid); //Suppression dans Attitre
-        deleteWhere($conn, 'Soins', 'RFID', $rfid); //Suppression dans Soins
-        deleteWhere($conn, 'Consomme', 'RFID', $rfid); //Suppression dans Consomme
-        deleteWhere($conn, 'Parrainer', 'RFID', $rfid); //Suppression dans Parrainer
-        deleteWhere($conn, 'Animal', 'RFID', $rfid); //Suppression dans Animal
+        deleteAnimal($conn, $rfid); //Suppression en cascade via deleteAnimal
         oci_commit($conn);
         redirectSelf();
     }
@@ -355,20 +409,15 @@
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_nom_latin'])) {
         $nl = $_POST['supprimer_nom_latin'];
         deleteWhere($conn, 'Specialiser', 'nom_latin', $nl); //Suppression dans Specialiser
-        deleteWhere($conn, 'Cohabiter', 'nom_latin_est_cohabiter_par', $nl); //Suppression dans Cohabiter
+        deleteWhere($conn, 'Cohabiter', 'nom_latin_est_cohabiter_par',  $nl); //Suppression dans Cohabiter
         deleteWhere($conn, 'Cohabiter', 'nom_latin_cohabite_avec', $nl); //Suppression dans Cohabiter
 
-        //Les animaux de cette espece doivent être supprimés en cascade manuellement
+        //Les animaux de cette espèce doivent être supprimés en cascade
         $animaux = oci_parse($conn, "SELECT RFID FROM Animal WHERE nom_latin = :nl");
         oci_bind_by_name($animaux, ':nl', $nl);
         oci_execute($animaux, OCI_NO_AUTO_COMMIT);
         while ($a = oci_fetch_assoc($animaux)) {
-            $rfid = $a['RFID'];
-            deleteWhere($conn, 'Attitre', 'RFID', $rfid);
-            deleteWhere($conn, 'Soins', 'RFID', $rfid);
-            deleteWhere($conn, 'Consomme', 'RFID', $rfid);
-            deleteWhere($conn, 'Parrainer', 'RFID', $rfid);
-            deleteWhere($conn, 'Animal', 'RFID', $rfid);
+            deleteAnimal($conn, $a['RFID']);
         }
 
         deleteWhere($conn, 'Espece', 'nom_latin', $nl); //Suppression dans Espece
@@ -526,14 +575,30 @@
         -Nom du paramètre GET
         -Valeur de l'ID à modifier
 
-        Génère le bouton Modifier sous forme d'un lien avec paramètre GET*/
-        $url = 'gestion.php'.'?'.$param.'='.$value;
+        Génère le bouton Modifier sous forme d'un lien avec conservation des tables actuellement affichées*/
+        $params = [];
+
+        foreach (['tablePersonnel','tableEnclos','tableBoutiques','tableAnimaux','tableEspeces'] as $t) {
+            if (!empty($_GET[$t])) {
+                $params[] = $t.'='.$_GET[$t];  //Construction de la liste des tables cochées
+            }
+        }
+
+        $params[] = $param.'='.$value; //Ajout de l'identification de la ligne modifiée, exemple : edit_boutique=2 => modification de la ligne 2 dans Boutique
+
+        $url = 'gestion.php?'.implode('&', $params);
         echo '<a href="'.$url.'"><button type="button">Modifier</button></a>';
     }
 
     function btnAnnuler() {
-        /*Génère le bouton Annuler qui ramène à la page sans paramètre GET*/
-        echo '<a href="gestion.php"><button type="button">Annuler</button></a>';
+        $params = [];
+        foreach (['tablePersonnel','tableEnclos','tableBoutiques','tableAnimaux','tableEspeces'] as $t) {
+            if (!empty($_GET[$t])) {
+                $params[] = $t.'='.$_GET[$t]; //Construction de la liste des tables cochées
+            }
+        }
+        $url = 'gestion.php'.(count($params) ? '?'.implode('&', $params) : ''); //Si le nombre de tableaux dans la liste est différent de 0, on crée le lien
+        echo '<a href="'.$url.'"><button type="button">Annuler</button></a>';
     }
 
     function selectZone($name, $selected = '') {
@@ -544,7 +609,8 @@
         $zones = ['Zone Afrique','Zone Asie','Zone France','Zone Dinosaure','Zone Aquatique'];
         echo '<select name="'.$name.'">';
         foreach ($zones as $z) {
-            echo '<option value="'.$z.'">'.$z.'</option>';
+            $sel = ($z === $selected) ? ' selected' : '';
+            echo '<option value="'.$z.'"'.$sel.'>'.$z.'</option>';
         }
         echo '</select>';
     }
@@ -578,11 +644,11 @@
             ORDER BY P.nom_personnel"
         );
         oci_execute($req);
-        echo '<select name="'.$name.'">';
+        echo '<select name="'.$name.'">'; //Création du select
         while ($row = oci_fetch_assoc($req)) {
-            $label = $row['PRENOM_PERSONNEL'].' '.$row['NOM_PERSONNEL'];
-            $sel = ($label === $selected) ? ' selected' : '';
-            echo '<option value="'.htmlspecialchars($label).'"'.$sel.'>'.htmlspecialchars($label).'</option>';
+            $label = $row['PRENOM_PERSONNEL'].' '.$row['NOM_PERSONNEL']; //Concaténation du prénom et du nom
+            $sel = ($label === $selected) ? ' selected' : ''; //Si ça correspond au responsable actuellement sélectionnée (paramètre), on met selected sinon chaîne vide
+            echo '<option value="'.htmlspecialchars($label).'"'.$sel.'>'.htmlspecialchars($label).'</option>'; //Ajout de l'option selected si besoin
         }
         echo '</select>';
     }
@@ -596,7 +662,7 @@
         Génère un <select> avec toutes les espèces connues*/
         $req = oci_parse($conn, "SELECT nom_usuel FROM Espece ORDER BY nom_usuel");
         oci_execute($req);
-        echo '<select name="'.$name.'">';
+        echo '<select name="'.$name.'">'; //Création du select
         while ($row = oci_fetch_assoc($req)) {
             $val = $row['NOM_USUEL'];
             $sel = ($val === $selected) ? ' selected' : '';
@@ -625,7 +691,7 @@
         </tr>
 
         <?php while ($row = oci_fetch_assoc($requetePersonnel)): ?>
-            <?php if ($editPersonnel == $row['ID_PERSONNEL']): ?>
+            <?php if ($editPersonnel == $row['ID_PERSONNEL']): ?> <!-- Si $editPersonnel différent de null (on a appuyé sur modifier) -->
                 <!-- MODE ÉDITION -->
                 <tr>
                     <form method="post">
@@ -681,7 +747,7 @@
                 <td><input type="text" name="salaire"></td>
                 <td><input type="date" name="date_debut"></td>
                 <td><?php selectFonction('fonction'); ?></td>
-                <td><input type="password" name="mot_de_passe"></td>
+                <td><input type="text" name="mot_de_passe"></td>
                 <td><input type="submit" name="ajouter_personnel" value="Ajouter"></td>
             </form>
         </tr>
@@ -824,6 +890,7 @@
                 <tr>
                     <form method="post">
                         <input type="hidden" name="edit_rfid" value="<?php echo $row['RFID']; ?>">
+                        <?php hiddenTables(); ?>
                         <td><?php echo htmlspecialchars($row['RFID']); ?></td>
                         <td><input type="text" name="edit_nom_animal"       value="<?php echo htmlspecialchars($row['NOM_ANIMAL']); ?>"></td>
                         <td><input type="date" name="edit_date_naissance"   value="<?php echo htmlspecialchars($row['DATE_NAISSANCE']); ?>"></td>

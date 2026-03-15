@@ -255,9 +255,9 @@ if (!isset($_SESSION['id'])) {
         <h2>Résultats</h2>
         <p>Aucun résultat trouvé.</p>
     <?php else: ?>
+        <h2>Résultats</h2>
         <?php foreach ($results as $item): ?>
         <!--  Affichage de chaque éléments  -->
-            <h2>Résultats</h2>
             <div class="item">
                 <h3><?php echo $item["type"]; ?> : <?php echo $item["titre"]; ?></h3>
 

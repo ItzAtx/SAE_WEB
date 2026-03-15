@@ -1,3 +1,145 @@
-form{
+body {
     margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(rgba(34, 139, 34, 0.6), rgba(0, 50, 0, 0.8)),
+        url("../images/image_gestion.webp");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    padding: 30px 40px 60px;
+    color: white;
 }
+
+p {
+    background: rgba(255, 0, 0, 0.15);
+    border: 2px solid rgba(255, 80, 80, 0.5);
+    border-radius: 12px;
+    color: #ffaaaa;
+    padding: 10px 16px;
+    font-weight: bold;
+}
+
+h2 {
+    letter-spacing: 1px;
+    color: white;
+}
+
+/* ===========================
+   TABLEAU
+=========================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(0, 112, 75, 0.25);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    border: 1px solid rgba(46, 125, 50, 0.4);
+}
+
+th {
+    background: rgba(0, 80, 50, 0.55);
+    color: rgba(200, 255, 220, 0.9);
+    font-weight: bold;
+    padding: 12px 14px;
+    text-align: left;
+}
+
+td {
+    padding: 10px 14px;
+    color: white;
+    transition: 0.2s;
+}
+
+tr:hover td {
+    background: rgba(46, 125, 50, 0.2);
+}
+
+input[type="text"],
+input[type="date"],
+input[type="password"],
+select {
+    width: 80px;
+    padding: 7px 12px;
+    border-radius: 18px;
+    border: 2px solid #2e7d32;
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    font-family: "Segoe UI", Arial, sans-serif;
+    outline: none;
+    transition: 0.25s;
+}   
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="password"]:focus,
+select:focus {
+    border-color: #66bb6a;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.25);
+}
+select {
+    cursor: pointer;
+    padding-right: 30px;
+    width: auto;
+}
+
+select option {
+    background: #1b5e20;
+    color: white;
+}
+
+input[type="submit"],
+button[type="button"] {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-weight: bold;
+    border-radius: 18px;
+    border: none;
+    cursor: pointer;
+    padding: 7px 16px;
+    transition: 0.25s;
+}
+
+input[type="submit"][value="Ajouter"],
+input[type="submit"][value="Valider"] {
+    background: #2e7d32;
+    color: white;
+}
+
+input[type="submit"][value="Ajouter"]:hover,
+input[type="submit"][value="Valider"]:hover {
+    background: #1b5e20;
+}
+
+input[type="submit"][value="Supprimer"] {
+    background: rgba(180, 30, 30, 0.7);
+    color: white;
+}
+
+input[type="submit"][value="Supprimer"]:hover {
+    background: #b71c1c;
+}
+
+button[type="button"] {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+button[type="button"]:hover {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255,255,255,0.6);
+}
+
+td:last-child a,
+td:last-child form {
+    display: inline-block;
+}
+
+i {
+    color: rgba(255,255,255,0.4);
+    font-style: italic;
+    font-size: 0.8rem;
+}
+
