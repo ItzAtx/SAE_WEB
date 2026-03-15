@@ -238,9 +238,18 @@
             deleteAnimal($conn, $a['RFID']);
         }
 
+        //Suppression des réparations et de ce qui en dépend de l'enclos
+        $reqRep = oci_parse($conn, "SELECT id_reparation FROM Reparation WHERE id_enclos = :id");
+        oci_bind_by_name($reqRep, ':id', $id);
+        oci_execute($reqRep);
+        while ($r = oci_fetch_assoc($reqRep)) {
+            deleteWhere($conn, 'Participe', 'id_reparation', $r['ID_REPARATION']);
+            deleteWhere($conn, 'Entretient', 'id_reparation', $r['ID_REPARATION']);
+        }
+        deleteWhere($conn, 'Reparation', 'id_enclos', $id);
+
         //Suppressions simples dans les autres tables
         deleteWhere($conn, 'Possede', 'id_enclos', $id);
-        deleteWhere($conn, 'Reparation', 'id_enclos', $id);
         deleteWhere($conn, 'Enclos', 'id_enclos', $id);
         oci_commit($conn);
         redirectSelf();
