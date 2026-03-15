@@ -193,7 +193,7 @@ INSERT INTO Contient (id_repas, id_nourriture, quantite) VALUES (13, 2, 2);
 INSERT INTO Boutique (id_boutique, nom_boutique, type_boutique, id_personnel, id_zone)
     VALUES (1, 'La Savane Shop', 'Souvenirs', 5, 2);
 INSERT INTO Boutique (id_boutique, nom_boutique, type_boutique, id_personnel, id_zone)
-    VALUES (2, 'Jurassic Snacks', 'Restauration', 4, 4);
+    VALUES (2, 'Jurassic Snacks', 'Restauration', 5, 4);
 
 INSERT INTO Travaille (id_personnel, id_boutique) VALUES (4, 1);
 INSERT INTO Travaille (id_personnel, id_boutique) VALUES (5, 1);
