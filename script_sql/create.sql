@@ -97,6 +97,8 @@ CREATE TABLE Personnel (
     mot_de_passe VARCHAR(255) NOT NULL,
     id_connexion VARCHAR(100),
     id_zone INT,
+    archiver CHAR(1),
+    CONSTRAINT archiver_check CHECK (archiver IN ('O', 'N')),
     CONSTRAINT pk_id_personnel PRIMARY KEY (id_personnel)
 );
 
