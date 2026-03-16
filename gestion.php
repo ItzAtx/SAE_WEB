@@ -19,7 +19,7 @@
 
         if (!$req) {
             $e = oci_error($conn);
-            die("Erreur parse SQL : " . htmlspecialchars($e['message']));
+            die("Erreur parse SQL : ".htmlspecialchars($e['message']));
         }
 
         foreach ($params as $name => &$value) {
@@ -32,8 +32,8 @@
         if (!$ok) {
             $e = oci_error($req);
             die(
-                "Erreur Oracle : " . htmlspecialchars($e['message']) .
-                "<br>Requête : " . htmlspecialchars($requeteP)
+                "Erreur Oracle : ".htmlspecialchars($e['message']).
+                "<br>Requête : ".htmlspecialchars($requeteP)
             );
         }
 
@@ -64,7 +64,7 @@
             }
         }
         $url = count($params) ? '?'.implode('&', $params) : ''; //S'il y a au moins une table, alors on la met dans l'url, sinon on ne met rien
-        header("Location: gestion.php" . $url);
+        header("Location: gestion.php".$url);
         exit();
     }
 
@@ -147,10 +147,58 @@
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_personnel'])) {
         $id = $_POST['supprimer_id_personnel'];
 
-        //On archive le personnel supprimé
-        execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-        oci_commit($conn);
-        redirectSelf();
+        // Vérifier la fonction du personnel à archiver
+        $rowFonction = fetchOne($conn,
+            "SELECT F.fonction FROM Personnel P, Contrat C, Fonction F
+            WHERE P.id_personnel = C.id_personnel
+            AND C.id_fonction = F.id_fonction
+            AND P.id_personnel = :id",
+            [':id' => $id]
+        );
+
+        // Si c'est un directeur de magasin, vérifier qu'il n'est pas le seul
+        if ($rowFonction && $rowFonction['FONCTION'] === 'Directeur de magasin') {
+            $rowCount = fetchOne($conn,
+                "SELECT COUNT(*) AS nb FROM Personnel P, Contrat C, Fonction F
+                WHERE P.id_personnel = C.id_personnel
+                AND C.id_fonction = F.id_fonction
+                AND F.fonction = 'Directeur de magasin'
+                AND P.archiver_personnel = 'N'",
+                []
+            );
+
+            if ($rowCount['NB'] <= 1) {
+                //S'il n'y a qu'un seul directeur de magasin, on interdit l'archivage
+                $message = "Impossible d'archiver : ce personnel est le seul directeur de magasin.";
+            } else {
+                //On trouve un directeur de magasin actif pour reprendre les boutiques
+                $autreDir = fetchOne($conn,
+                    "SELECT MIN(P.id_personnel) as id_personnel
+                    FROM Personnel P, Contrat C, Fonction F
+                    WHERE P.id_personnel = C.id_personnel
+                    AND C.id_fonction = F.id_fonction
+                    AND F.fonction = 'Directeur de magasin'
+                    AND P.archiver_personnel = 'N'
+                    AND P.id_personnel <> :id",
+                    [':id' => $id]
+                );
+
+                //On réassigne les boutique
+                execQuery($conn, "UPDATE Boutique  SET id_personnel = :new_id WHERE id_personnel = :id",
+                    [':new_id' => $autreDir['ID_PERSONNEL'], ':id' => $id]
+                );
+                execQuery($conn, "UPDATE Zone_zoo SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
+                execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+                oci_commit($conn);
+                redirectSelf();
+            }
+        } else {
+            execQuery($conn, "UPDATE Boutique  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
+            execQuery($conn, "UPDATE Zone_zoo  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
+            execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+            oci_commit($conn);
+            redirectSelf();
+        }
     }
 
     /* =========================
@@ -625,15 +673,17 @@
         echo '</select>';
     }
 
-    function selectFonction($name) {
+    function selectFonction($name, $selected = '') {
         /*Entrée :
         -Attribut name du <select>
+        -Valeur à présélectionner
 
         Génère un <select> avec les fonctions*/
         $fonctions = ['Directeur','Technicien','Soigneur','Employe de magasin','Directeur de magasin'];
         echo '<select name="'.$name.'">';
         foreach ($fonctions as $f) {
-            echo '<option value="'.$f.'">'.$f.'</option>';
+            $sel = ($f === $selected) ? ' selected' : '';
+            echo '<option value="'.$f.'"'.$sel.'>'.$f.'</option>';
         }
         echo '</select>';
     }
@@ -651,6 +701,7 @@
             WHERE P.id_personnel = C.id_personnel
             AND C.id_fonction = F.id_fonction
             AND F.fonction = 'Directeur de magasin'
+            AND P.archiver_personnel = 'N'
             ORDER BY P.nom_personnel"
         );
         oci_execute($req);
@@ -715,7 +766,7 @@
                         <td><?php echo htmlspecialchars($row['ID_CONTRAT']); ?></td>
                         <td><input type="text" name="edit_salaire"    value="<?php echo htmlspecialchars($row['SALAIRE']); ?>"></td>
                         <td><input type="date" name="edit_date_debut" value="<?php echo htmlspecialchars($row['DATE_DEBUT']); ?>"></td>
-                        <td><?php selectFonction('edit_fonction'); ?></td>
+                        <td><?php selectFonction('edit_fonction', $row['FONCTION']); ?></td>
                         <td><i>(inchangé)</i></td>
                         <td>
                             <input type="submit" name="modifier_personnel" value="Valider">
@@ -842,8 +893,8 @@
                         <input type="hidden" name="edit_id_boutique" value="<?php echo $row['ID_BOUTIQUE']; ?>">
                         <?php hiddenTables(); ?>
                         <td><?php echo htmlspecialchars($row['ID_BOUTIQUE']); ?></td>
-                        <td><input type="text" name="edit_nom_boutique"         value="<?php echo htmlspecialchars($row['NOM_BOUTIQUE']); ?>"></td>
-                        <td><input type="text" name="edit_type_boutique"        value="<?php echo htmlspecialchars($row['TYPE_BOUTIQUE']); ?>"></td>
+                        <td><input type="text" name="edit_nom_boutique" value="<?php echo htmlspecialchars($row['NOM_BOUTIQUE']); ?>"></td>
+                        <td><input type="text" name="edit_type_boutique" value="<?php echo htmlspecialchars($row['TYPE_BOUTIQUE']); ?>"></td>
                         <td><?php selectResponsableBoutique($conn, 'edit_responsable_boutique', $row['RESPONSABLE']); ?></td>
                         <td><?php selectZone('edit_zone_boutique', $row['ZONE_LIBELLE']); ?></td>
                         <td>
