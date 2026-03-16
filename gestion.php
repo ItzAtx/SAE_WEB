@@ -147,7 +147,7 @@
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_personnel'])) {
         $id = $_POST['supprimer_id_personnel'];
 
-        // Vérifier la fonction du personnel à archiver
+        //Vérifier la fonction du personnel à archiver
         $rowFonction = fetchOne($conn,
             "SELECT F.fonction FROM Personnel P, Contrat C, Fonction F
             WHERE P.id_personnel = C.id_personnel
@@ -156,8 +156,29 @@
             [':id' => $id]
         );
 
-        // Si c'est un directeur de magasin, vérifier qu'il n'est pas le seul
-        if ($rowFonction && $rowFonction['FONCTION'] === 'Directeur de magasin') {
+        $fonction = $rowFonction ? $rowFonction['FONCTION'] : null;
+
+        if ($fonction === 'Directeur') {
+            //On vérifie qu'il n'est pas le seul directeur
+            $rowCount = fetchOne($conn,
+                "SELECT COUNT(*) AS nb FROM Personnel P, Contrat C, Fonction F
+                WHERE P.id_personnel = C.id_personnel
+                AND C.id_fonction = F.id_fonction
+                AND F.fonction = 'Directeur'
+                AND P.archiver_personnel = 'N'",
+                []
+            );
+            if ($rowCount['NB'] <= 1) {
+                $message = "Impossible d'archiver : ce personnel est le seul directeur.";
+            } else {
+                execQuery($conn, "UPDATE Zone_zoo  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
+                execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+                oci_commit($conn);
+                redirectSelf();
+            }
+
+        } elseif ($fonction === 'Directeur de magasin') {
+            //On vérifie qu'il n'est pas le seul directeur de magasin
             $rowCount = fetchOne($conn,
                 "SELECT COUNT(*) AS nb FROM Personnel P, Contrat C, Fonction F
                 WHERE P.id_personnel = C.id_personnel
@@ -166,14 +187,12 @@
                 AND P.archiver_personnel = 'N'",
                 []
             );
-
             if ($rowCount['NB'] <= 1) {
-                //S'il n'y a qu'un seul directeur de magasin, on interdit l'archivage
                 $message = "Impossible d'archiver : ce personnel est le seul directeur de magasin.";
             } else {
-                //On trouve un directeur de magasin actif pour reprendre les boutiques
+                //On trouve un nouveau directeur non archivé
                 $autreDir = fetchOne($conn,
-                    "SELECT MIN(P.id_personnel) as id_personnel
+                    "SELECT MIN(P.id_personnel) AS id_personnel
                     FROM Personnel P, Contrat C, Fonction F
                     WHERE P.id_personnel = C.id_personnel
                     AND C.id_fonction = F.id_fonction
@@ -182,19 +201,20 @@
                     AND P.id_personnel <> :id",
                     [':id' => $id]
                 );
-
-                //On réassigne les boutique
+                //On réassigne les boutique à un autre directeur
                 execQuery($conn, "UPDATE Boutique  SET id_personnel = :new_id WHERE id_personnel = :id",
                     [':new_id' => $autreDir['ID_PERSONNEL'], ':id' => $id]
                 );
-                execQuery($conn, "UPDATE Zone_zoo SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
                 execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
                 oci_commit($conn);
                 redirectSelf();
             }
+
         } else {
+            //Archivage simple + suppression des données dans Attitre si soigneur 
             execQuery($conn, "UPDATE Boutique  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
             execQuery($conn, "UPDATE Zone_zoo  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
+            deleteWhere($conn, 'Attitre', 'id_personnel', $id);
             execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
             oci_commit($conn);
             redirectSelf();
@@ -398,9 +418,7 @@
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_rfid'])) {
         $rfid = $_POST['supprimer_rfid'];
-        $reqArchiver = oci_parse($conn, "UPDATE Animal SET archiver_animal = 'O' WHERE RFID = :rfid");
-        oci_bind_by_name($reqArchiver, ':rfid', $rfid);
-        oci_execute($reqArchiver);
+        deleteAnimal($conn, $rfid); //Suppression en cascade via deleteAnimal
         oci_commit($conn);
         redirectSelf();
     }
@@ -420,7 +438,7 @@
             );
             //Ajout des données dans Animal
             execQuery($conn,
-                "INSERT INTO Animal VALUES (:rfid, :nom_animal, TO_DATE(:date_naissance,'YYYY-MM-DD'), :poids, NULL, NULL, :id_enclos, :nom_latin, 'N')",
+                "INSERT INTO Animal VALUES (:rfid, :nom_animal, TO_DATE(:date_naissance,'YYYY-MM-DD'), :poids, NULL, NULL, :id_enclos, :nom_latin)",
                 [":rfid"=>$_POST['rfid'],":nom_animal"=>$_POST['nom_animal'], ":date_naissance"=>$_POST['date_naissance'],":poids"=>$_POST['poids'], ":id_enclos"=>$_POST['id_enclos_animal'],":nom_latin"=>$rowEspece['NOM_LATIN']]
             );
             oci_commit($conn);
@@ -551,7 +569,6 @@
         "SELECT A.RFID, A.nom_animal, TO_CHAR(A.date_naissance,'YYYY-MM-DD') AS date_naissance, A.poids, A.id_enclos, E.nom_usuel
         FROM Animal A, Espece E
         WHERE A.nom_latin = E.nom_latin
-        AND A.archiver_animal = 'N'
         ORDER BY A.RFID"
     );
     oci_execute($requeteAnimal);
