@@ -24,7 +24,8 @@
                         $requeteP = oci_parse($conn,
                             "SELECT id_personnel, mot_de_passe
                             FROM Personnel
-                            WHERE id_connexion = :identifiant"
+                            WHERE id_connexion = :identifiant
+                            AND archiver_personnel = 'N'"
                         );
                         oci_bind_by_name($requeteP, ":identifiant", $id);
                         oci_execute($requeteP);

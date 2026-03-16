@@ -2,7 +2,7 @@
 
 /*===================================*/
 /* TABLE INDEPENDANTE */
-/* Ce tables n'ont pas d'attributs dépendants d'une autre table
+/* Ce tables n'ont pas d'attributs dépendants d'une autre table*/
 /*===================================*/
 CREATE TABLE Espece (
     nom_latin VARCHAR(50),
@@ -55,9 +55,9 @@ CREATE TABLE Nourriture (
 );
 
 /*===================================*/
-/* TABLES AVEC CLEFS ETRANGERES
-/* Les clefs étrangères de ces tables provoquent des références circulaires.
-/* Les contraintes sont ajoutés en fin de script par nécessité et facilité
+/* TABLES AVEC CLEFS ETRANGERES*/
+/* Les clefs étrangères de ces tables provoquent des références circulaires.*/
+/* Les contraintes sont ajoutés en fin de script par nécessité et facilité*/
 /*===================================*/
 
 CREATE TABLE Animal (
@@ -69,6 +69,8 @@ CREATE TABLE Animal (
     RFID_a_pour_mere INT,
     id_enclos INT,
     nom_latin VARCHAR(50),
+    archiver_animal CHAR(1),
+    CONSTRAINT archiver_animal_check CHECK (archiver_animal IN ('O', 'N')),
     CONSTRAINT pk_animal PRIMARY KEY (RFID),
     CONSTRAINT fk_animal_rfid_pere FOREIGN KEY (RFID_a_pour_pere) REFERENCES Animal(RFID),
     CONSTRAINT fk_animal_rfid_mere FOREIGN KEY (RFID_a_pour_mere) REFERENCES Animal(RFID),
@@ -98,8 +100,8 @@ CREATE TABLE Personnel (
     mot_de_passe VARCHAR(255) NOT NULL,
     id_connexion VARCHAR(100),
     id_zone INT,
-    archiver CHAR(1),
-    CONSTRAINT archiver_check CHECK (archiver IN ('O', 'N')),
+    archiver_personnel CHAR(1),
+    CONSTRAINT archiver_personnel_check CHECK (archiver_personnel IN ('O', 'N')),
     CONSTRAINT pk_id_personnel PRIMARY KEY (id_personnel)
 );
 
@@ -113,7 +115,7 @@ CREATE TABLE Boutique (
 );
 
 CREATE TABLE Chiffre_affaire (
-    id_ca INT DEFAULT id_ca_seq.nextval,
+    id_ca INT,
     date_ca DATE,
     montant FLOAT,
     id_boutique INT,
@@ -157,8 +159,8 @@ CREATE TABLE Contrat (
 );
 
 /*===================================*/
-/* TABLE D'ASSOCIATION
-/* Ces tables sont issues des associations
+/* TABLE D'ASSOCIATION*/
+/* Ces tables sont issues des associations*/
 /*===================================*/
 
 CREATE TABLE Possede (
@@ -245,9 +247,9 @@ CREATE TABLE Contient (
 );
 
 /*===================================*/
-/* AJOUT DES CONTRAINTES DE CLEF ETRANGERE
-/* On ajoute les contraites de clef étrangères pour
-/* les tables ayant des références circulaires
+/* AJOUT DES CONTRAINTES DE CLEF ETRANGERE*/
+/* On ajoute les contraites de clef étrangères pour*/
+/* les tables ayant des références circulaires*/
 /*===================================*/
 
 /*Animal*/

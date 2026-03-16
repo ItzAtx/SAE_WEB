@@ -15,21 +15,28 @@
     ============= */
 
     function execQuery($conn, $requeteP, $params = []) {
-        /*Entrée :
-        -Variable de la connexion
-        -Requête voulue
-        -Paramètre pour les binds
-
-        Sortie :
-        -Ressource contenant le résultat de la requête
-
-        La fonction permet de préparer, de mettre les paramètres et d'éxecuter la requête*/
         $req = oci_parse($conn, $requeteP);
-        foreach ($params as $name => &$value) { //Le & permet à oci_bind_by_name de lire la valeur au moment de oci_execute et non au moment du bind
+
+        if (!$req) {
+            $e = oci_error($conn);
+            die("Erreur parse SQL : " . htmlspecialchars($e['message']));
+        }
+
+        foreach ($params as $name => &$value) {
             oci_bind_by_name($req, $name, $value);
         }
-        unset($value); //Coupe la référence vers le dernier élément du foreach
-        oci_execute($req, OCI_NO_AUTO_COMMIT);
+        unset($value);
+
+        $ok = oci_execute($req, OCI_NO_AUTO_COMMIT);
+
+        if (!$ok) {
+            $e = oci_error($req);
+            die(
+                "Erreur Oracle : " . htmlspecialchars($e['message']) .
+                "<br>Requête : " . htmlspecialchars($requeteP)
+            );
+        }
+
         return $req;
     }
 
@@ -85,7 +92,7 @@
 
         Retourne l'id_zone correspondant à un libellé de zone*/
         $row = fetchOne($conn,
-            "SELECT id_zone FROM Zone_zoo WHERE libelle = :libelle",
+            "SELECT id_zone FROM Zone_zoo WHERE libelle_zone = :libelle",
             [":libelle" => $libelle]
         );
         return $row ? $row['ID_ZONE'] : null;
@@ -140,25 +147,8 @@
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_personnel'])) {
         $id = $_POST['supprimer_id_personnel'];
 
-        //Suppression dans Contient pour chaque repas préparé par ce personnel
-        $reqRepas = oci_parse($conn, "SELECT id_repas FROM Repas WHERE id_personnel = :id");
-        oci_bind_by_name($reqRepas, ':id', $id);
-        oci_execute($reqRepas);
-        while ($r = oci_fetch_assoc($reqRepas)) {
-            deleteWhere($conn, 'Contient', 'id_repas', $r['ID_REPAS']);
-        }
-
-        //Suppressions simples dans les autres tables
-        deleteWhere($conn, 'Chef', 'id_personnel_manager_de', $id);
-        deleteWhere($conn, 'Chef', 'id_personnel_est_manager_par', $id);
-        deleteWhere($conn, 'Specialiser', 'id_personnel', $id);
-        deleteWhere($conn, 'Attitre', 'id_personnel', $id);
-        deleteWhere($conn, 'Soins', 'id_personnel', $id);
-        deleteWhere($conn, 'Repas', 'id_personnel', $id);
-        deleteWhere($conn, 'Entretient', 'id_personnel', $id);
-        deleteWhere($conn, 'Travaille', 'id_personnel', $id);
-        deleteWhere($conn, 'Contrat', 'id_personnel', $id);
-        deleteWhere($conn, 'Personnel', 'id_personnel', $id);
+        //On archive le personnel supprimé
+        execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
         oci_commit($conn);
         redirectSelf();
     }
@@ -175,7 +165,7 @@
             $mot_de_passe = password_hash($_POST['mot_de_passe'], PASSWORD_DEFAULT);
             //Ajout des données dans Personnel
             execQuery($conn,
-                "INSERT INTO Personnel VALUES (:id_personnel, :nom_personnel, :prenom_personnel, :mot_de_passe, :id_connexion, :id_zone)",
+                "INSERT INTO Personnel VALUES (:id_personnel, :nom_personnel, :prenom_personnel, :mot_de_passe, :id_connexion, :id_zone, 'N')",
                 [":id_personnel"=>$_POST['id_personnel'],":nom_personnel"=>$_POST['nom_personnel'], ":prenom_personnel"=>$_POST['prenom_personnel'],":mot_de_passe"=>$mot_de_passe, ":id_connexion"=>$_POST['id_connexion'],":id_zone"=>$id_zone]
             );
             //On cherche l'id_fonction correspondant à la fonction donnée
@@ -360,7 +350,9 @@
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_rfid'])) {
         $rfid = $_POST['supprimer_rfid'];
-        deleteAnimal($conn, $rfid); //Suppression en cascade via deleteAnimal
+        $reqArchiver = oci_parse($conn, "UPDATE Animal SET archiver_animal = 'O' WHERE RFID = :rfid");
+        oci_bind_by_name($reqArchiver, ':rfid', $rfid);
+        oci_execute($reqArchiver);
         oci_commit($conn);
         redirectSelf();
     }
@@ -380,7 +372,7 @@
             );
             //Ajout des données dans Animal
             execQuery($conn,
-                "INSERT INTO Animal VALUES (:rfid, :nom_animal, TO_DATE(:date_naissance,'YYYY-MM-DD'), :poids, NULL, NULL, :id_enclos, :nom_latin)",
+                "INSERT INTO Animal VALUES (:rfid, :nom_animal, TO_DATE(:date_naissance,'YYYY-MM-DD'), :poids, NULL, NULL, :id_enclos, :nom_latin, 'N')",
                 [":rfid"=>$_POST['rfid'],":nom_animal"=>$_POST['nom_animal'], ":date_naissance"=>$_POST['date_naissance'],":poids"=>$_POST['poids'], ":id_enclos"=>$_POST['id_enclos_animal'],":nom_latin"=>$rowEspece['NOM_LATIN']]
             );
             oci_commit($conn);
@@ -477,18 +469,19 @@
 
     //Affiche les données de Personnel
     $requetePersonnel = oci_parse($conn,
-        "SELECT P.id_personnel, P.prenom_personnel, P.nom_personnel, P.id_connexion, Z.libelle AS zone_libelle, C.id_contrat, C.salaire, TO_CHAR(C.date_debut,'YYYY-MM-DD') AS date_debut, F.fonction
+        "SELECT P.id_personnel, P.prenom_personnel, P.nom_personnel, P.id_connexion, Z.libelle_zone AS zone_libelle, C.id_contrat, C.salaire, TO_CHAR(C.date_debut,'YYYY-MM-DD') AS date_debut, F.fonction
         FROM Personnel P, Contrat C, Fonction F, Zone_zoo Z
         WHERE C.id_personnel = P.id_personnel
         AND C.id_fonction = F.id_fonction
         AND P.id_zone = Z.id_zone(+)
+        AND archiver_personnel = 'N'
         ORDER BY P.id_personnel"
     );
     oci_execute($requetePersonnel);
 
     //Affiche les données de Enclos
     $requeteEnclos = oci_parse($conn,
-        "SELECT E.id_enclos, E.latitude, E.longitude, E.surface, Z.libelle AS zone_libelle
+        "SELECT E.id_enclos, E.latitude, E.longitude, E.surface, Z.libelle_zone AS zone_libelle
         FROM Enclos E, Zone_zoo Z
         WHERE E.id_zone = Z.id_zone
         ORDER BY E.id_enclos"
@@ -497,7 +490,7 @@
 
     //Affiche les données de Boutique
     $requeteBoutique = oci_parse($conn,
-        "SELECT B.id_boutique, B.nom_boutique, B.type_boutique, P.prenom_personnel || ' ' || P.nom_personnel AS responsable, Z.libelle AS zone_libelle
+        "SELECT B.id_boutique, B.nom_boutique, B.type_boutique, P.prenom_personnel || ' ' || P.nom_personnel AS responsable, Z.libelle_zone AS zone_libelle
         FROM Boutique B, Personnel P, Zone_zoo Z
         WHERE B.id_personnel = P.id_personnel(+)
         AND B.id_zone = Z.id_zone
@@ -510,6 +503,7 @@
         "SELECT A.RFID, A.nom_animal, TO_CHAR(A.date_naissance,'YYYY-MM-DD') AS date_naissance, A.poids, A.id_enclos, E.nom_usuel
         FROM Animal A, Espece E
         WHERE A.nom_latin = E.nom_latin
+        AND A.archiver_animal = 'N'
         ORDER BY A.RFID"
     );
     oci_execute($requeteAnimal);
@@ -521,6 +515,13 @@
         ORDER BY nom_usuel"
     );
     oci_execute($requeteEspece);
+
+    //Calcul des ids
+    $nextIdPersonnel = fetchOne($conn, "SELECT NVL(MAX(id_personnel), 0) + 1 AS next_id FROM Personnel")['NEXT_ID'];
+    $nextIdContrat = fetchOne($conn, "SELECT NVL(MAX(id_contrat), 0) + 1 AS next_id FROM Contrat")['NEXT_ID'];
+    $nextIdEnclos = fetchOne($conn, "SELECT NVL(MAX(id_enclos), 0) + 1 AS next_id FROM Enclos")['NEXT_ID'];
+    $nextIdBoutique = fetchOne($conn, "SELECT NVL(MAX(id_boutique), 0) + 1 AS next_id FROM Boutique")['NEXT_ID'];
+    $nextRfid  = fetchOne($conn, "SELECT NVL(MAX(RFID), 1000) + 1 AS next_id FROM Animal")['NEXT_ID'];
 
     //ID en cours d'édition
     $editPersonnel = $_GET['edit_personnel'] ?? null;
@@ -747,12 +748,12 @@
         <tr>
             <form method="post">
                 <?php hiddenTables(); ?>
-                <td><input type="text" name="id_personnel"></td>
+                <td><input type="text" name="id_personnel" value="<?php echo $nextIdPersonnel; ?>" readonly></td>
                 <td><input type="text" name="prenom_personnel"></td>
                 <td><input type="text" name="nom_personnel"></td>
                 <td><input type="text" name="id_connexion"></td>
                 <td><?php selectZone('zone_personnel'); ?></td>
-                <td><input type="text" name="id_contrat"></td>
+                <td><input type="text" name="id_contrat" value="<?php echo $nextIdContrat; ?>" readonly></td>
                 <td><input type="text" name="salaire"></td>
                 <td><input type="date" name="date_debut"></td>
                 <td><?php selectFonction('fonction'); ?></td>
@@ -811,7 +812,7 @@
         <tr>
             <form method="post">
                 <?php hiddenTables(); ?>
-                <td><input type="text" name="id_enclos"></td>
+                <td><input type="text" name="id_enclos" value="<?php echo $nextIdEnclos; ?>" readonly></td>
                 <td><input type="text" name="latitude"></td>
                 <td><input type="text" name="longitude"></td>
                 <td><input type="text" name="surface"></td>
@@ -871,7 +872,7 @@
         <tr>
             <form method="post">
                 <?php hiddenTables(); ?>
-                <td><input type="text" name="id_boutique"></td>
+                <td><input type="text" name="id_boutique" value="<?php echo $nextIdBoutique; ?>" readonly></td>
                 <td><input type="text" name="nom_boutique"></td>
                 <td><input type="text" name="type_boutique"></td>
                 <td><?php selectResponsableBoutique($conn, 'responsable_boutique'); ?></td>
@@ -933,7 +934,7 @@
         <tr>
             <form method="post">
                 <?php hiddenTables(); ?>
-                <td><input type="text" name="rfid"></td>
+                <td><input type="text" name="rfid" value="<?php echo $nextRfid; ?>" readonly></td>
                 <td><input type="text" name="nom_animal"></td>
                 <td><input type="date" name="date_naissance"></td>
                 <td><input type="text" name="poids"></td>

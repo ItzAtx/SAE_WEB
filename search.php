@@ -47,11 +47,12 @@ if (!isset($_SESSION['id'])) {
 
         /* ========= PERSONNEL ========= */
         $rows = fetchAllRows($conn,
-            "SELECT P.id_personnel, P.prenom_personnel, P.nom_personnel, P.id_connexion, Z.libelle AS zone_libelle, F.fonction
+            "SELECT P.id_personnel, P.prenom_personnel, P.nom_personnel, P.id_connexion, Z.libelle_zone AS zone_libelle, F.fonction
             FROM Personnel P, Zone_zoo Z, Contrat C, Fonction F
             WHERE P.id_zone = Z.id_zone -- Jointures
             AND P.id_personnel = C.id_personnel
             AND C.id_fonction = F.id_fonction
+            AND P.archiver_personnel = 'N'
             AND (
                 LOWER(P.prenom_personnel) LIKE :pattern -- Si l'une de ces caractéristiques correspond au pattern, on prend ses infos
                 OR LOWER(P.nom_personnel) LIKE :pattern
@@ -77,19 +78,21 @@ if (!isset($_SESSION['id'])) {
 
         /* ========= ANIMAUX ========= */
         $rows = fetchAllRows($conn,
-            "SELECT A.RFID, A.nom_animal, E.nom_usuel, E.nom_latin, EN.id_enclos, Z.libelle AS zone_libelle, P.prenom_personnel AS prenom_soigneur, P.nom_personnel AS nom_soigneur
+            "SELECT A.RFID, A.nom_animal, E.nom_usuel, E.nom_latin, EN.id_enclos, Z.libelle_zone AS zone_libelle, P.prenom_personnel AS prenom_soigneur, P.nom_personnel AS nom_soigneur
             FROM Animal A, Espece E, Enclos EN, Zone_zoo Z, Attitre AT, Personnel P
             WHERE A.nom_latin = E.nom_latin -- Jointures
             AND A.id_enclos = EN.id_enclos
             AND EN.id_zone = Z.id_zone
             AND A.RFID = AT.RFID
             AND AT.id_personnel = P.id_personnel
+            AND A.archiver_animal = 'N'
+            AND P.archiver_personnel = 'N'
             AND (
                 LOWER(A.nom_animal) LIKE :pattern -- Si l'une de ces caractéristiques correspond au pattern, on prend ses infos
                 OR TO_CHAR(A.RFID) LIKE :pattern
                 OR LOWER(E.nom_usuel) LIKE :pattern
                 OR LOWER(E.nom_latin) LIKE :pattern
-                OR LOWER(Z.libelle) LIKE :pattern
+                OR LOWER(Z.libelle_zone) LIKE :pattern
                 OR LOWER(P.prenom_personnel) LIKE :pattern
                 OR LOWER(P.nom_personnel) LIKE :pattern
             )
@@ -133,24 +136,25 @@ if (!isset($_SESSION['id'])) {
 
         /* ========= ENCLOS ========= */
         $rows = fetchAllRows($conn,
-            "SELECT E.id_enclos, E.surface, Z.libelle AS zone_libelle
+            "SELECT E.id_enclos, E.surface, Z.libelle_zone AS zone_libelle
             FROM Enclos E, Zone_zoo Z
             WHERE E.id_zone = Z.id_zone -- Jointure
             AND (
                 TO_CHAR(E.id_enclos) LIKE :pattern -- Comparaison entre les ids des enclos et le pattern
-                OR LOWER(Z.libelle) LIKE :pattern -- Comparaison entre les noms des enclos et le pattern
+                OR LOWER(Z.libelle_zone) LIKE :pattern -- Comparaison entre les noms des enclos et le pattern
                 OR EXISTS ( -- Comparaison entre les animaux dans l'enclos et le pattern
                     SELECT nom_animal
                     FROM Animal A2
                     WHERE A2.id_enclos = E.id_enclos
+                    AND A2.archiver_animal = 'N'
                     AND LOWER(A2.nom_animal) LIKE :pattern
                 )
                 OR EXISTS ( -- Comparaison entre les particularités des enclos et le pattern
                     SELECT id_enclos
                     FROM Possede PO, Particularite PA
                     WHERE PO.id_enclos = E.id_enclos
-                    AND PO.libelle_particularite = PA.libelle_particularite
-                    AND LOWER(PA.libelle_particularite) LIKE :pattern
+                    AND PO.id_particularite = PA.id_particularite
+                    AND LOWER(PA.id_particularite) LIKE :pattern
                 )
             )
             ORDER BY E.id_enclos",
@@ -171,7 +175,7 @@ if (!isset($_SESSION['id'])) {
 
         /* ========= BOUTIQUES ========= */
         $rows = fetchAllRows($conn,
-            "SELECT B.id_boutique, B.nom_boutique, B.type_boutique, Z.libelle AS zone_libelle, P.prenom_personnel, P.nom_personnel
+            "SELECT B.id_boutique, B.nom_boutique, B.type_boutique, Z.libelle_zone AS zone_libelle, P.prenom_personnel, P.nom_personnel
             FROM Boutique B, Zone_zoo Z, Personnel P
             WHERE B.id_zone = Z.id_zone -- Jointures
             AND B.id_personnel = P.id_personnel
@@ -179,7 +183,7 @@ if (!isset($_SESSION['id'])) {
                 LOWER(B.nom_boutique) LIKE :pattern -- Si l'une de ces caractéristiques correspond au pattern, on prend ses infos
                 OR LOWER(B.type_boutique) LIKE :pattern
                 OR TO_CHAR(B.id_boutique) LIKE :pattern
-                OR LOWER(Z.libelle) LIKE :pattern
+                OR LOWER(Z.libelle_zone) LIKE :pattern
                 OR LOWER(P.prenom_personnel) LIKE :pattern
                 OR LOWER(P.nom_personnel) LIKE :pattern
             )
@@ -201,11 +205,12 @@ if (!isset($_SESSION['id'])) {
 
         /* ========= ZONES ========= */
         $rows = fetchAllRows($conn,
-            "SELECT Z.id_zone, Z.libelle, P.prenom_personnel, P.nom_personnel
+            "SELECT Z.id_zone, Z.libelle_zone, P.prenom_personnel, P.nom_personnel
             FROM Zone_zoo Z, Personnel P
             WHERE Z.id_personnel = P.id_personnel -- Jointure
+            AND P.archiver_personnel = 'N'
             AND (
-                LOWER(Z.libelle) LIKE :pattern -- Si l'une de ces caractéristiques correspond au pattern, on prend ses infos
+                LOWER(Z.libelle_zone) LIKE :pattern -- Si l'une de ces caractéristiques correspond au pattern, on prend ses infos
                 OR TO_CHAR(Z.id_zone) LIKE :pattern
                 OR LOWER(P.prenom_personnel) LIKE :pattern
                 OR LOWER(P.nom_personnel) LIKE :pattern
@@ -218,7 +223,7 @@ if (!isset($_SESSION['id'])) {
         foreach ($rows as $row) {
             $results[] = [
                 "type" => "Zone",
-                "titre" => $row["LIBELLE"],
+                "titre" => $row["LIBELLE_ZONE"],
                 "ligne1" => "ID : " . $row["ID_ZONE"],
                 "ligne2" => "Responsable : " . $row["PRENOM_PERSONNEL"]." ".$row["NOM_PERSONNEL"],
                 "ligne3" => "",
