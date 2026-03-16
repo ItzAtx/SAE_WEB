@@ -75,32 +75,32 @@ INSERT INTO Possede (id_enclos, id_particularite) VALUES (7, 5);
       Enclos 3 (Zone Asie)    : 1 Girafe
       Enclos 4 (Zone France)    : 2 Rats et 1 Pigeon
 */
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1001, 'Simba',  DATE '2019-05-12', 80.50, NULL, NULL, 1, 'Panthera leo', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1002, 'Nala',   DATE '2020-03-08', 30.20, NULL, NULL, 1, 'Panthera leo', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1003, 'Dumbo',  DATE '2018-11-25', 99.99,  NULL, NULL, 2, 'Loxodonta africana', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1004, 'Babar',  DATE '2015-07-14', 99.99,  NULL, NULL, 2, 'Loxodonta africana', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1005, 'Melman', DATE '2021-01-30', 99.99,  NULL, NULL, 3, 'Giraffa camelopardalis', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1006, 'Ratatouille', DATE '2021-05-10', 1.6,  NULL, NULL, 4, 'Rattus norvegicus', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1007, 'Kled', DATE '2026-03-06', 1.75,  NULL, NULL, 4, 'Rattus norvegicus', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1008, 'Babouche', DATE '2005-09-11', 6.7,  NULL, NULL, 4, 'Columba livia', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1009, 'Trucmuche', DATE '1975-05-07', 36.7,  NULL, NULL, 5, 'Velociraptor mongoliensis', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1010, 'Skaarl', DATE '1974-01-08', 2.3,  NULL, NULL, 5, 'Velociraptor mongoliensis', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1011, 'Chogathe', DATE '1971-01-31', 2.3,  NULL, NULL, 6, 'Tyrannosaurus rex', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1012, 'Franklin', DATE '2018-12-07', 2.3,  NULL, NULL, 7, 'Testudo graeca', 'N');
-INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin, archiver_animal)
-    VALUES (1013, 'Fizz', DATE '2024-06-15', 2.3,  NULL, NULL, 7, 'Carcharodon carcharias', 'N');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1001, 'Simba',  DATE '2019-05-12', 80.50, NULL, NULL, 1, 'Panthera leo');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1002, 'Nala',   DATE '2020-03-08', 30.20, NULL, NULL, 1, 'Panthera leo');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1003, 'Dumbo',  DATE '2018-11-25', 99.99,  NULL, NULL, 2, 'Loxodonta africana');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1004, 'Babar',  DATE '2015-07-14', 99.99,  NULL, NULL, 2, 'Loxodonta africana');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1005, 'Melman', DATE '2021-01-30', 99.99,  NULL, NULL, 3, 'Giraffa camelopardalis');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1006, 'Ratatouille', DATE '2021-05-10', 1.6,  NULL, NULL, 4, 'Rattus norvegicus');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1007, 'Kled', DATE '2026-03-06', 1.75,  NULL, NULL, 4, 'Rattus norvegicus');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1008, 'Babouche', DATE '2005-09-11', 6.7,  NULL, NULL, 4, 'Columba livia');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1009, 'Trucmuche', DATE '1975-05-07', 36.7,  NULL, NULL, 5, 'Velociraptor mongoliensis');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1010, 'Skaarl', DATE '1974-01-08', 2.3,  NULL, NULL, 5, 'Velociraptor mongoliensis');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1011, 'Chogathe', DATE '1971-01-31', 2.3,  NULL, NULL, 6, 'Tyrannosaurus rex');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1012, 'Franklin', DATE '2018-12-07', 2.3,  NULL, NULL, 7, 'Testudo graeca');
+INSERT INTO Animal (RFID, nom_animal, date_naissance, poids, RFID_a_pour_pere, RFID_a_pour_mere, id_enclos, nom_latin)
+    VALUES (1013, 'Fizz', DATE '2024-06-15', 2.3,  NULL, NULL, 7, 'Carcharodon carcharias');
 
 /*Soigneur attitré aux 5 animaux (Camille Bernard, id_personnel=3)*/
 INSERT INTO Attitre (RFID, id_personnel) VALUES (1001, 3);

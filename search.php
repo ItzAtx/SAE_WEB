@@ -85,7 +85,6 @@ if (!isset($_SESSION['id'])) {
             AND EN.id_zone = Z.id_zone
             AND A.RFID = AT.RFID
             AND AT.id_personnel = P.id_personnel
-            AND A.archiver_animal = 'N'
             AND P.archiver_personnel = 'N'
             AND (
                 LOWER(A.nom_animal) LIKE :pattern -- Si l'une de ces caractéristiques correspond au pattern, on prend ses infos
@@ -146,7 +145,6 @@ if (!isset($_SESSION['id'])) {
                     SELECT nom_animal
                     FROM Animal A2
                     WHERE A2.id_enclos = E.id_enclos
-                    AND A2.archiver_animal = 'N'
                     AND LOWER(A2.nom_animal) LIKE :pattern
                 )
                 OR EXISTS ( -- Comparaison entre les particularités des enclos et le pattern
@@ -154,7 +152,7 @@ if (!isset($_SESSION['id'])) {
                     FROM Possede PO, Particularite PA
                     WHERE PO.id_enclos = E.id_enclos
                     AND PO.id_particularite = PA.id_particularite
-                    AND LOWER(PA.id_particularite) LIKE :pattern
+                    AND LOWER(PA.libelle_particularite) LIKE :pattern
                 )
             )
             ORDER BY E.id_enclos",

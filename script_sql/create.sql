@@ -69,8 +69,6 @@ CREATE TABLE Animal (
     RFID_a_pour_mere INT,
     id_enclos INT,
     nom_latin VARCHAR(50),
-    archiver_animal CHAR(1),
-    CONSTRAINT archiver_animal_check CHECK (archiver_animal IN ('O', 'N')),
     CONSTRAINT pk_animal PRIMARY KEY (RFID),
     CONSTRAINT fk_animal_rfid_pere FOREIGN KEY (RFID_a_pour_pere) REFERENCES Animal(RFID),
     CONSTRAINT fk_animal_rfid_mere FOREIGN KEY (RFID_a_pour_mere) REFERENCES Animal(RFID),
