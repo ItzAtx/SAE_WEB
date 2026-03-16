@@ -13,8 +13,9 @@ CREATE TABLE Espece (
 );
 
 CREATE TABLE Particularite (
+    id_particularite INT,
     libelle_particularite VARCHAR(50),
-    CONSTRAINT pk_particularite PRIMARY KEY (libelle_particularite)
+    CONSTRAINT pk_particularite PRIMARY KEY (id_particularite)
 );
 
 CREATE TABLE Prestataire (
@@ -162,10 +163,10 @@ CREATE TABLE Contrat (
 
 CREATE TABLE Possede (
     id_enclos INT,
-    libelle_particularite VARCHAR(50) NOT NULL,
-    CONSTRAINT pk_possede PRIMARY KEY (id_enclos, libelle_particularite),
+    id_particularite INT NOT NULL,
+    CONSTRAINT pk_possede PRIMARY KEY (id_enclos, id_particularite),
     CONSTRAINT fk_possede_id_enclos FOREIGN KEY (id_enclos) REFERENCES Enclos(id_enclos),
-    CONSTRAINT fk_possede_libelle_particularite FOREIGN KEY (libelle_particularite) REFERENCES Particularite(libelle_particularite)
+    CONSTRAINT fk_possede_id_particularite FOREIGN KEY (id_particularite) REFERENCES Particularite(id_particularite)
 );
 
 CREATE TABLE Parrainer (

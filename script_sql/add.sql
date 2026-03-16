@@ -7,11 +7,12 @@ INSERT INTO Fonction (id_fonction, fonction) VALUES (5, 'Directeur de magasin');
 
 
 /*Personnel (sans zone dans un premier temps, contrainte circulaire Zone_zoo <-> Personnel)*/
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (1, 'Belabbas',   'Selma',   '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'selma.belabbas', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (2, 'Delloue',   'Alexandre',   '$2y$10$1kEX7cwJbLO9d4VipsAxMO7mHF.W8tgIqxfIimxHUpaoEuHxyHMry', 'alexandre.delloue', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (3, 'Vauchel',  'Anthony',  '$2y$10$3xXH2SEfTG7y0uSK52NVWeFIXyn.Nx20008ikm6AoX5uAwME.CaOO', 'anthony.vauchel', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (4, 'Katr', 'Jhin',   '$2y$10$m5i88BDPM8UFFu90sAFLieTQhfArbbAOHiBDW1wVGMlL5LLWBMdiG', 'jhin.katr', NULL);
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone) VALUES (5, 'Mamamia',   'Mario', '$2y$10$sVvv6tJBa912aNd.5JBx.erYcDIHsirKaST7vHt5ptx/X7.hc3EFa', 'mario.mamamia', NULL);
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver) VALUES (1, 'Belabbas',   'Selma',   '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'selma.belabbas', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver) VALUES (2, 'Delloue',   'Alexandre',   '$2y$10$1kEX7cwJbLO9d4VipsAxMO7mHF.W8tgIqxfIimxHUpaoEuHxyHMry', 'alexandre.delloue', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver) VALUES (3, 'Vauchel',  'Anthony',  '$2y$10$3xXH2SEfTG7y0uSK52NVWeFIXyn.Nx20008ikm6AoX5uAwME.CaOO', 'anthony.vauchel', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver) VALUES (4, 'Katr', 'Jhin',   '$2y$10$m5i88BDPM8UFFu90sAFLieTQhfArbbAOHiBDW1wVGMlL5LLWBMdiG', 'jhin.katr', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver) VALUES (5, 'Mamamia',   'Mario', '$2y$10$sVvv6tJBa912aNd.5JBx.erYcDIHsirKaST7vHt5ptx/X7.hc3EFa', 'mario.mamamia', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver) VALUES (6, 'Sorton', 'Virginie', '$2y$10$1kEX7cwJbLO9d4VipsAxMO7mHF.W8tgIqxfIimxHUpaoEuHxyHMry', 'virginie.sorton', NULL, 'O');
 
 /*Zones (5 zones, responsable = Directeur id=1)*/
 INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (1, 'Zone Afrique', 1);
@@ -52,21 +53,21 @@ INSERT INTO Enclos (id_enclos, latitude, longitude, surface, id_zone) VALUES (6,
 INSERT INTO Enclos (id_enclos, latitude, longitude, surface, id_zone) VALUES (7, 48.8560, 2.3585, 6800.00, 5);
 
 /*Particularité et Possession (1 particularite par enclos)*/
-INSERT INTO Particularite (libelle_particularite) VALUES ('Mare artificielle');
-INSERT INTO Particularite (libelle_particularite) VALUES ('Vegetation dense');
-INSERT INTO Particularite (libelle_particularite) VALUES ('Rochers grimpables');
-INSERT INTO Particularite (libelle_particularite) VALUES ('Sol sableux');
-INSERT INTO Particularite (libelle_particularite) VALUES ('Bassin profond');
-INSERT INTO Particularite (libelle_particularite) VALUES ('Nexus');
-INSERT INTO Particularite (libelle_particularite) VALUES ('Gros bout de viande');
+INSERT INTO Particularite (id_particularite, libelle_particularite) VALUES (1, 'Mare artificielle');
+INSERT INTO Particularite (id_particularite, libelle_particularite) VALUES (2, 'Vegetation dense');
+INSERT INTO Particularite (id_particularite, libelle_particularite) VALUES (3, 'Rochers grimpables');
+INSERT INTO Particularite (id_particularite, libelle_particularite) VALUES (4, 'Sol sableux');
+INSERT INTO Particularite (id_particularite, libelle_particularite) VALUES (5, 'Bassin profond');
+INSERT INTO Particularite (id_particularite, libelle_particularite) VALUES (6, 'Nexus');
+INSERT INTO Particularite (id_particularite, libelle_particularite) VALUES (7, 'Gros bout de viande');
 
-INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (1, 'Mare artificielle');
-INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (2, 'Vegetation dense');
-INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (3, 'Rochers grimpables');
-INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (4, 'Sol sableux');
-INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (5, 'Nexus');
-INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (6, 'Gros bout de viande');
-INSERT INTO Possede (id_enclos, libelle_particularite) VALUES (7, 'Bassin profond');
+INSERT INTO Possede (id_enclos, id_particularite) VALUES (1, 1);
+INSERT INTO Possede (id_enclos, id_particularite) VALUES (2, 2);
+INSERT INTO Possede (id_enclos, id_particularite) VALUES (3, 3);
+INSERT INTO Possede (id_enclos, id_particularite) VALUES (4, 4);
+INSERT INTO Possede (id_enclos, id_particularite) VALUES (5, 6);
+INSERT INTO Possede (id_enclos, id_particularite) VALUES (6, 7);
+INSERT INTO Possede (id_enclos, id_particularite) VALUES (7, 5);
 
 /*Animal
       Enclos 1 (Zone Afrique) : 2 Lions
