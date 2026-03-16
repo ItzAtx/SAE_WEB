@@ -15,11 +15,11 @@ INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_pas
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver) VALUES (6, 'Sorton', 'Virginie', '$2y$10$1kEX7cwJbLO9d4VipsAxMO7mHF.W8tgIqxfIimxHUpaoEuHxyHMry', 'virginie.sorton', NULL, 'O');
 
 /*Zones (5 zones, responsable = Directeur id=1)*/
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (1, 'Zone Afrique', 1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (2, 'Zone Asie', 1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (3, 'Zone France', 1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (4, 'Zone Dinosaure', 1);
-INSERT INTO Zone_zoo (id_zone, libelle, id_personnel) VALUES (5, 'Zone Aquatique', 1);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (1, 'Zone Afrique', 1);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (2, 'Zone Asie', 1);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (3, 'Zone France', 1);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (4, 'Zone Dinosaure', 1);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (5, 'Zone Aquatique', 1);
 
 -- Rattachement des personnels a leur zone
 UPDATE Personnel SET id_zone = 1 WHERE id_personnel IN (1, 2, 3);
@@ -144,8 +144,8 @@ INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (1
 INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (13, DATE '2025-03-01', 'Complexe', 3, 1013);
 
 /*Nourriture (2 types partages par tous les animaux)*/
-INSERT INTO Nourriture (id_nourriture, nom) VALUES (1, 'Viande fraiche');
-INSERT INTO Nourriture (id_nourriture, nom) VALUES (2, 'Fruits et legumes');
+INSERT INTO Nourriture (id_nourriture, nom_nourriture) VALUES (1, 'Viande fraiche');
+INSERT INTO Nourriture (id_nourriture, nom_nourriture) VALUES (2, 'Fruits et legumes');
 
 /*Repas (1 par animal) + CONTIENT + CONSOMME + PREPARE*/
 INSERT INTO Repas (id_repas, nom_repas, date_repas, RFID, id_personnel) VALUES (1, 'Repas Simba',  DATE '2025-02-01', 1001, 3);
@@ -211,19 +211,19 @@ INSERT INTO Chiffre_affaire (id_ca, date_ca, montant, id_boutique) VALUES (4, DA
        Prestataire 2 (EcoRep)      -> Reparation 2 dans enclos 2
        Note : le lien Prestataire/Reparation passe par Prestations+Participe
 */
-INSERT INTO Prestataire (id_prestataire, adresse, nom_societte, telephone_prestataire)
+INSERT INTO Prestataire (id_prestataire, adresse_societe, nom_societe, telephone_societe)
     VALUES (1, '12 rue du Marteau Paris',   'BatiZoo SARL',    0612345678);
-INSERT INTO Prestataire (id_prestataire, adresse, nom_societte, telephone_prestataire)
+INSERT INTO Prestataire (id_prestataire, adresse_societe, nom_societe, telephone_societe)
     VALUES (2, '5 avenue des Artisans Lyon','EcoRep Services', 0698765432);
 
 -- Prestations associees aux travaux (niveau Bronze)
-INSERT INTO Prestations (id_prestation, libelle, niveau_contribution) VALUES (1, 'Refection cloture enclos 1',   'Bronze');
-INSERT INTO Prestations (id_prestation, libelle, niveau_contribution) VALUES (2, 'Reparation arrosage enclos 2', 'Bronze');
+INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (1, 'Refection cloture enclos 1',   'Bronze');
+INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (2, 'Reparation arrosage enclos 2', 'Bronze');
 
 -- Reparations dans 2 enclos differents
-INSERT INTO Reparation (id_reparation, nature_reparation, libelle, id_enclos)
+INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos)
     VALUES (1, 'Cloture',   'Remplacement des panneaux de cloture abimes',  1);
-INSERT INTO Reparation (id_reparation, nature_reparation, libelle, id_enclos)
+INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos)
     VALUES (2, 'Plomberie', 'Reparation du systeme d''arrosage automatique', 2);
 
 -- Chaque prestation est liee a une reparation differente
@@ -243,8 +243,8 @@ INSERT INTO Visiteurs (id_visiteur, nom_visiteur, prenom_visiteur, numero_teleph
 INSERT INTO Visiteurs (id_visiteur, nom_visiteur, prenom_visiteur, numero_telephone)
     VALUES (2, 'Petit',   'Marie',   0605060708);
 
-INSERT INTO Prestations (id_prestation, libelle, niveau_contribution) VALUES (3, 'Parrainage Or - Simba',     'Or');
-INSERT INTO Prestations (id_prestation, libelle, niveau_contribution) VALUES (4, 'Parrainage Argent - Simba', 'Argent');
+INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (3, 'Parrainage Or - Simba',     'Or');
+INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (4, 'Parrainage Argent - Simba', 'Argent');
 
 INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1001, 1, 3);
 INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1001, 2, 4);

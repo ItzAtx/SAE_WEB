@@ -20,9 +20,9 @@ CREATE TABLE Particularite (
 
 CREATE TABLE Prestataire (
     id_prestataire INT,
-    adresse VARCHAR(50),
-    nom_societte VARCHAR(50),
-    telephone_prestataire NUMBER(10),
+    adresse_societe VARCHAR(50),
+    nom_societe VARCHAR(50),
+    telephone_societe NUMBER(10),
     CONSTRAINT pk_id_prestataire PRIMARY KEY (id_prestataire)
 );
 
@@ -36,7 +36,7 @@ CREATE TABLE Visiteurs (
 
 CREATE TABLE Prestations (
     id_prestation int,
-    libelle VARCHAR(50),
+    libelle_prestation VARCHAR(50),
     niveau_contribution VARCHAR(6),
     CONSTRAINT contribution_check CHECK (niveau_contribution IN ('Bronze', 'Argent', 'Or')),
     CONSTRAINT pk_id_prestation PRIMARY KEY (id_prestation)
@@ -50,7 +50,7 @@ CREATE TABLE Fonction (
 
 CREATE TABLE Nourriture (
     id_nourriture INT,
-    nom VARCHAR(50),
+    nom_nourriture VARCHAR(50),
     CONSTRAINT pk_id_nourriture PRIMARY KEY (id_nourriture)
 );
 
@@ -86,7 +86,7 @@ CREATE TABLE Enclos (
 
 CREATE TABLE Zone_zoo (
     id_zone INT,
-    libelle VARCHAR(50),
+    libelle_zone VARCHAR(50),
     id_personnel INT,
     CONSTRAINT pk_id_zone PRIMARY KEY (id_zone)
 );
@@ -123,7 +123,7 @@ CREATE TABLE Chiffre_affaire (
 CREATE TABLE Reparation (
     id_reparation INT,
     nature_reparation VARCHAR(50),
-    libelle VARCHAR(100),
+    libelle_reparation VARCHAR(100),
     id_enclos INT,
     CONSTRAINT pk_id_reparation PRIMARY KEY (id_reparation)
 );
