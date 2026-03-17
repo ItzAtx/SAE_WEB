@@ -6,6 +6,7 @@
 
 <html>
     <head>
+        <title>Modification</title>
         <link rel="stylesheet" href="css/modification.css">
     </head>
     <body>

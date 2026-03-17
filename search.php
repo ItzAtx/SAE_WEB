@@ -213,7 +213,7 @@
 <html lang="fr">
 <head>
     <meta charset="utf-8">
-    <title>Recherche zoo</title>
+    <title>Accueil</title>
     <link rel="stylesheet" href="css/search.css">
 </head>
 <body>

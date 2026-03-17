@@ -6,6 +6,7 @@
 
 <html>
     <head>
+        <title>Connexion</title>
         <link rel="stylesheet" href="css/index.css">
     </head>
     <body>
