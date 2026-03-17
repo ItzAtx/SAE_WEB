@@ -1,4 +1,9 @@
-<?php session_start(); ?>
+<?php
+    session_start();
+    include_once("fonctions.php");
+    $conn = getConnection();
+?>
+
 <html>
     <head>
         <link rel="stylesheet" href="css/index.css">
@@ -17,21 +22,14 @@
                         $id = $_POST['identifiant'];
                         $mdp = $_POST['mdp'];
 
-                        include_once("myparam.inc.php");
-                        $conn = oci_connect(MYUSER, MYPASS, MYHOST); //Connexion à la BDD
-
-                        //Préparation de la requête et execution
-                        $requeteP = oci_parse($conn,
+                        //Préparation de la requête, execution et récupération des données
+                        $row = fetchOne($conn,
                             "SELECT id_personnel, mot_de_passe
                             FROM Personnel
                             WHERE id_connexion = :identifiant
-                            AND archiver_personnel = 'N'"
+                            AND archiver_personnel = 'N'",
+                            [":identifiant" => $id]
                         );
-                        oci_bind_by_name($requeteP, ":identifiant", $id);
-                        oci_execute($requeteP);
-
-                        //Récupération des données de la BDD
-                        $row = oci_fetch_array($requeteP, OCI_ASSOC);
 
                         //Si row n'est pas vide (signifie qu'il y a des données pour l'identifiant entré) et que le mot de passe est bon
                         if ($row && password_verify($mdp, $row['MOT_DE_PASSE'])){ 
@@ -49,8 +47,7 @@
                         header("Location: index.php");
                         exit();
                     }
-                }
-                    
+                }   
             ?>
 
             <form method="post">

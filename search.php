@@ -1,10 +1,7 @@
 <?php
-session_start();
-
-if (!isset($_SESSION['id'])) {
-    header("Location: index.php");
-    exit();
-}
+    include_once("fonctions.php");
+    requireLogin();
+    $conn = getConnection();
 ?>
 
 <form method="get" action="gestion.php">
@@ -15,29 +12,10 @@ if (!isset($_SESSION['id'])) {
     <label><input type="checkbox" name="tableEspeces" value="1"> Espèces</label>
     <input type="submit" value="Gérer">
 </form>
+<a href="soins.php"><button>Soins</button></a>
+
 
 <?php
-    include_once("myparam.inc.php");
-    $conn = oci_connect(MYUSER, MYPASS, MYHOST); //Connexion à la BDD
-
-    function fetchAllRows($conn, $req, $binds = []) {
-        //Préparation de la requête
-        $requeteP = oci_parse($conn, $req);
-
-        //On remplace chaque paramètres par leurs valeurs
-        foreach ($binds as $key => $value) {
-            oci_bind_by_name($requeteP, $key, $binds[$key]);
-        }
-        oci_execute($requeteP);//Execution
-
-        //On remplis le tableau par les lignes du résultat
-        $rows = [];
-        while ($row = oci_fetch_assoc($requeteP)) {
-            $rows[] = $row;
-        }
-
-        return $rows;
-    }
 
     $searchVal = isset($_GET["search"]) ? trim($_GET["search"]) : ""; //Prend la valeur ou chaîne vide si champs vide
     $results = [];

@@ -1,9 +1,7 @@
 <?php 
-    session_start();
-    if (!isset($_SESSION['id'])){
-        header("Location: index.php");
-        exit();
-    } 
+    include_once("fonctions.php");
+    requireLogin();
+    $conn = getConnection();
 ?>
 
 <html>
@@ -19,23 +17,17 @@
                     unset($_SESSION['succes']);
                 }
 
-                include_once("myparam.inc.php");
-                $conn = oci_connect(MYUSER, MYPASS, MYHOST); //Connexion à la BDD
-
                 $id_session = $_SESSION['id']; //Récupération de l'id de l'utilisateur depuis la session
 
-                //Requête préparée et execution 
-                $requeteP = oci_parse($conn,
-                            "SELECT prenom_personnel, nom_personnel, id_connexion, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut
-                             FROM Personnel p, Contrat c
-                             WHERE p.id_personnel = c.id_personnel
-                             AND p.id_personnel = :identifiant"
-                        );
-                oci_bind_by_name($requeteP, ":identifiant", $id_session);
-                oci_execute($requeteP);
+                //Requête préparée, execution et récupération des données
+                $row = fetchOne($conn,
+                    "SELECT prenom_personnel, nom_personnel, id_connexion, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut
+                    FROM Personnel p, Contrat c
+                    WHERE p.id_personnel = c.id_personnel
+                    AND p.id_personnel = :identifiant",
+                    [":identifiant" => $id_session]
+                );
 
-                //Récupération des données depuis la BDD
-                $row = oci_fetch_array($requeteP, OCI_ASSOC);
                 $prenom = $row['PRENOM_PERSONNEL'];
                 $nom = $row['NOM_PERSONNEL'];
                 $identifiant = $row['ID_CONNEXION'];
@@ -60,31 +52,25 @@
                         $identifiant = $_POST['identifiant'];
 
                         //Préparation de la requête (mise à jour des données dans Personnel) et execution
-                        $requeteP = oci_parse($conn,
+                        execQuery($conn,
                             "UPDATE Personnel
                              SET prenom_personnel = :prenom, nom_personnel = :nom, id_connexion = :identifiant_connex
-                             WHERE id_personnel = :identifiant"
+                             WHERE id_personnel = :identifiant",
+                             [":prenom" => $prenom, ":nom" => $nom, ":identifiant_connex" => $identifiant, ":identifiant" => $id_session]
                         );
-                        oci_bind_by_name($requeteP, ":prenom", $prenom);
-                        oci_bind_by_name($requeteP, ":nom", $nom);
-                        oci_bind_by_name($requeteP, ":identifiant_connex", $identifiant);
-                        oci_bind_by_name($requeteP, ":identifiant", $id_session);
-                        oci_execute($requeteP);
 
                         //Préparation de la requête (mise à jour des données dans Contrat) et execution
-                        $requeteP = oci_parse($conn,
+                        execQuery($conn,
                             "UPDATE Contrat
                              SET date_debut = TO_DATE(:date_debut, 'YYYY-MM-DD')
-                             WHERE id_personnel = :identifiant"
+                             WHERE id_personnel = :identifiant",
+                             [":date_debut" => $date, ":identifiant" => $id_session]
                         );
-                        oci_bind_by_name($requeteP, ":date_debut", $date);
-                        oci_bind_by_name($requeteP, ":identifiant", $id_session);
-                        oci_execute($requeteP);
-                        
+ 
                         oci_commit($conn); //Mise à jour
 
                         $_SESSION['succes'] = "Informations mises à jour !";
-                        header("Location: modification.php"); //On redirige l'utilisateur vers la même page à jour
+                        redirectTo("modification.php"); //On redirige l'utilisateur vers la même page à jour
                         exit();
                         
                     } else {

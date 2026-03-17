@@ -1,9 +1,7 @@
 <?php 
-    session_start();
-    if (!isset($_SESSION['id'])){
-        header("Location: index.php");
-        exit();
-    } 
+    include_once("fonctions.php");
+    requireLogin();
+    $conn = getConnection();
 ?>
 
 <html>
@@ -17,24 +15,18 @@
                 <h2>Informations</h2>
                 <?php
 
-                    include_once("myparam.inc.php");
-                    $conn = oci_connect(MYUSER, MYPASS, MYHOST); //Connexion à la BDD
-
                     $id_session = $_SESSION['id']; //Récupération de l'id de l'utilisateur depuis la session
 
-                    //Préparation de la requête et execution
-                    $requeteP = oci_parse($conn,
+                    //Préparation de la requête, execution et récupération des données
+                    $row = fetchOne($conn,
                             "SELECT p.prenom_personnel, p.nom_personnel, p.id_connexion, c.salaire, c.date_debut, f.fonction
                              FROM Personnel p, Contrat c, Fonction f
                              WHERE p.id_personnel = c.id_personnel
                              AND c.id_fonction = f.id_fonction
-                             AND p.id_personnel = :identifiant"
+                             AND p.id_personnel = :identifiant",
+                             [":identifiant" => $id_session]
                     );
-                    oci_bind_by_name($requeteP, ":identifiant", $id_session);
-                    oci_execute($requeteP);
 
-                    //Récupération des données depuis la BDD
-                    $row = oci_fetch_array($requeteP, OCI_ASSOC);
                     $prenom = $row['PRENOM_PERSONNEL'];
                     $nom = $row['NOM_PERSONNEL'];
                     $identifiant = $row['ID_CONNEXION'];
@@ -74,17 +66,13 @@
                                     $nouveau = password_hash($_POST['nvmdp'], PASSWORD_DEFAULT); //On hash le nouveau mdp
 
                                     //Préparation de la requête (mise à jour du mdp) et execution
-                                    $requeteP = oci_parse($conn,
+                                    $requeteP = execQuery($conn,
                                             "UPDATE Personnel
                                             SET mot_de_passe = :nouveau
-                                            WHERE id_personnel = :id_session"
+                                            WHERE id_personnel = :id_session",
+                                            [":nouveau" => $nouveau, ":id_session" => $id_session]
                                     );
-                                    oci_bind_by_name($requeteP, ":nouveau", $nouveau);
-                                    oci_bind_by_name($requeteP, ":id_session", $id_session);
-                                    oci_execute($requeteP);
-
-                                    oci_commit($conn); //Mise à jour
-                                    
+                                    oci_commit($conn);
                                     echo "Mot de passe modifié !";
                             } else {
                                 echo "<p class='erreur'> Le format ne correspond pas </p>";
