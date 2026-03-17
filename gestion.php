@@ -771,7 +771,7 @@
         <?php while ($row = oci_fetch_assoc($requetePersonnel)): ?>
             <?php if ($editPersonnel == $row['ID_PERSONNEL']): ?> <!-- Si $editPersonnel différent de null (on a appuyé sur modifier) -->
                 <!-- MODE ÉDITION -->
-                <tr>
+                <tr id="edit-<?php echo htmlspecialchars($row['ID_PERSONNEL']); ?>">
                     <form method="post">
                         <input type="hidden" name="edit_id_personnel" value="<?php echo $row['ID_PERSONNEL']; ?>">
                         <?php hiddenTables(); ?>
@@ -845,7 +845,7 @@
         <?php while ($row = oci_fetch_assoc($requeteEnclos)): ?>
             <?php if ($editEnclos == $row['ID_ENCLOS']): ?>
                 <!-- MODE ÉDITION -->
-                <tr>
+                <tr id="edit-<?php echo htmlspecialchars($row['ID_ENCLOS']); ?>">
                     <form method="post">
                         <input type="hidden" name="edit_id_enclos" value="<?php echo $row['ID_ENCLOS']; ?>">
                         <?php hiddenTables(); ?>
@@ -905,7 +905,7 @@
         <?php while ($row = oci_fetch_assoc($requeteBoutique)): ?>
             <?php if ($editBoutique == $row['ID_BOUTIQUE']): ?>
                 <!-- MODE ÉDITION -->
-                <tr>
+                <tr id="edit-<?php echo htmlspecialchars($row['ID_BOUTIQUE']); ?>">
                     <form method="post">
                         <input type="hidden" name="edit_id_boutique" value="<?php echo $row['ID_BOUTIQUE']; ?>">
                         <?php hiddenTables(); ?>
@@ -965,7 +965,7 @@
         <?php while ($row = oci_fetch_assoc($requeteAnimal)): ?>
             <?php if ($editAnimal == $row['RFID']): ?>
                 <!-- MODE ÉDITION -->
-                <tr>
+                <tr id="edit-<?php echo htmlspecialchars($row['RFID']); ?>">
                     <form method="post">
                         <input type="hidden" name="edit_rfid" value="<?php echo $row['RFID']; ?>">
                         <?php hiddenTables(); ?>
@@ -1027,7 +1027,7 @@
         <?php while ($row = oci_fetch_assoc($requeteEspece)): ?>
             <?php if ($editEspece == $row['NOM_LATIN']): ?>
                 <!-- MODE ÉDITION -->
-                <tr>
+                <tr id="edit-<?php echo htmlspecialchars($row['NOM_LATIN']); ?>">
                     <form method="post">
                         <?php hiddenTables(); ?>
                         <input type="hidden" name="edit_nom_latin" value="<?php echo htmlspecialchars($row['NOM_LATIN']); ?>">
@@ -1076,6 +1076,15 @@
         </tr>
     </table>
 <?php endif; ?>
+
+<script>
+    window.addEventListener('load', function () {
+        const el = document.querySelector('tr[id^="edit-"]');
+        if (el) {
+            el.scrollIntoView({ behavior: 'instant', block: 'center' });
+        }
+    });
+</script>
 
 </body>
 </html>
