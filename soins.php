@@ -86,7 +86,7 @@
     /* =========================
     HIÉRARCHIE CHEFS SOIGNEURS
     ========================= */
-    //Récupère les liens Chef pour chaque chef et les gens de son équpé
+    //Récupère les liens Chef pour chaque chef et les gens de son équipe
     //Pour chaque lien : infos du chef, sa zone responsable, infos de l'équipier
     $rowsChefs = fetchAllRows($conn,
         "SELECT
@@ -120,6 +120,26 @@
         $chefs[$idChef]['equipe'][] = ['nom' => $row['PRENOM_EQ'].' '.$row['NOM_EQ']];
     }
 
+
+    //Récupère les chefs qui n'ont aucun équipier (Responsable de zone)
+    $chefsSeuls = fetchAllRows($conn,
+        "SELECT DISTINCT p.id_personnel AS id_chef, p.nom_personnel AS nom_chef, p.prenom_personnel AS prenom_chef, z.libelle_zone
+        FROM Personnel p, Zone_zoo z
+        WHERE z.id_personnel = p.id_personnel
+        AND p.archiver_personnel = 'N'
+        AND NOT EXISTS (
+            SELECT * FROM Chef ch WHERE ch.id_personnel_manager_de = p.id_personnel
+        )"
+    );
+
+    //On ajoute au tableau $chefs avec une équipe vide
+    foreach ($chefsSeuls as $row) {
+        $idChef = $row['ID_CHEF'];
+        if (!isset($chefs[$idChef])) {
+            $chefs[$idChef] = ['nom' => $row['PRENOM_CHEF'].' '.$row['NOM_CHEF'], 'zone' => $row['LIBELLE_ZONE'],'equipe' => []];
+        }
+    }
+
     /*=========================
     SOIGNEURS NON MANAGÉS
     ========================= */
@@ -127,6 +147,7 @@
     Récupère les soigneurs actifs qui :
     -ne sont managés par personne
     -ne managent personne non plus
+    -ne sont pas responsable d'une zone
     */
     $soigneursNonManages = fetchAllRows($conn,
         "SELECT DISTINCT p.id_personnel, p.nom_personnel, p.prenom_personnel
@@ -134,14 +155,18 @@
         WHERE p.id_personnel = c.id_personnel
         AND c.id_fonction = f.id_fonction
         AND LOWER(f.fonction) = 'soigneur'
-        AND p.archiver_personnel = 'N' --Non archivé
-        AND NOT EXISTS ( --Managé par personne
+        AND p.archiver_personnel = 'N'
+        AND NOT EXISTS (
             SELECT * FROM Chef ch
             WHERE ch.id_personnel_est_manager_par = p.id_personnel
         )
-        AND NOT EXISTS ( --Ne manage personne
-            SELECT * FROM Chef ch
-            WHERE ch.id_personnel_manager_de = p.id_personnel
+        AND NOT EXISTS (
+        SELECT * FROM Chef ch
+        WHERE ch.id_personnel_manager_de = p.id_personnel
+        )
+        AND NOT EXISTS (
+            SELECT * FROM Zone_zoo z
+            WHERE z.id_personnel = p.id_personnel
         )
         ORDER BY p.nom_personnel"
     );
@@ -149,16 +174,12 @@
     /* ================
     CHEFS SOIGNEURS
     ================== */
-    //Récupère les soigneurs non archivés qui apparaissent dans id_personnel_manager_de de Chef
+    //Récupère les soigneurs non archivés responsable d'une zone (un chef = un responsable de zone)
     $chefsSoigneurs = fetchAllRows($conn,
         "SELECT DISTINCT p.id_personnel, p.nom_personnel, p.prenom_personnel, z.libelle_zone
         FROM Personnel p, Zone_zoo z
         WHERE z.id_personnel = p.id_personnel
-        AND p.archiver_personnel = 'N' --Non archivé
-        AND EXISTS ( --Est manager
-            SELECT * FROM Chef ch
-            WHERE ch.id_personnel_manager_de = p.id_personnel
-        )
+        AND p.archiver_personnel = 'N'
         ORDER BY p.nom_personnel"
     );
 
@@ -217,6 +238,7 @@
         )
         ORDER BY a.nom_animal"
     );
+
 ?>
 
 <!DOCTYPE html>
@@ -278,15 +300,24 @@
                     </tr>
                     <?php foreach ($chefs as $chef): ?>
                         <?php $nb = count($chef['equipe']); ?>
-                        <?php foreach ($chef['equipe'] as $i => $membre): ?>
+                        <?php if ($nb === 0): ?>
+                            <!-- Chef sans équipe : une seule ligne, cellule équipier vide -->
                             <tr>
-                                <?php if ($i === 0): ?>
-                                    <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($chef['nom']) ?></td>
-                                    <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($chef['zone']) ?></td>
-                                <?php endif; ?>
-                                <td><?php echo htmlspecialchars($membre['nom']) ?></td>
+                                <td><?php echo htmlspecialchars($chef['nom']) ?></td>
+                                <td><?php echo htmlspecialchars($chef['zone']) ?></td>
+                                <td><em>Aucun équipier</em></td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php else: ?>
+                            <?php foreach ($chef['equipe'] as $i => $membre): ?>
+                                <tr>
+                                    <?php if ($i === 0): ?>
+                                        <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($chef['nom']) ?></td>
+                                        <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($chef['zone']) ?></td>
+                                    <?php endif; ?>
+                                    <td><?php echo htmlspecialchars($membre['nom']) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </table>
             <?php endif; ?>
@@ -356,6 +387,7 @@
                 <?php endforeach; ?>
             </table>
         </div>
+
 
         <!-- ===================== AJOUTER UN SOIGNEUR À UNE ÉQUIPE ===================== -->
         <div class="card">
