@@ -13,17 +13,23 @@ INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_pas
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel) VALUES (4, 'Katr', 'Jhin',   '$2y$10$m5i88BDPM8UFFu90sAFLieTQhfArbbAOHiBDW1wVGMlL5LLWBMdiG', 'jhin.katr', NULL, 'N');
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel) VALUES (5, 'Mamamia',   'Mario', '$2y$10$sVvv6tJBa912aNd.5JBx.erYcDIHsirKaST7vHt5ptx/X7.hc3EFa', 'mario.mamamia', NULL, 'N');
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel) VALUES (6, 'Sorton', 'Virginie', '$2y$10$1kEX7cwJbLO9d4VipsAxMO7mHF.W8tgIqxfIimxHUpaoEuHxyHMry', 'virginie.sorton', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel)VALUES (7, 'Fontaine', 'Lucas', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'lucas.fontaine', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel)VALUES (8, 'Renard', 'Sophie', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'sophie.renard', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel)VALUES (9, 'Moreau', 'Théo', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'theo.moreau', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel)VALUES (10, 'Laurent', 'Camille', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'camille.laurent', NULL, 'N');
 
 /*Zones (5 zones, responsable = Soigneurs id=1)*/
 INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (1, 'Zone Afrique', 3);
-INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (2, 'Zone Asie', 3);
-INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (3, 'Zone France', 3);
-INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (4, 'Zone Dinosaure', 6);
-INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (5, 'Zone Aquatique', 6);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (2, 'Zone Asie', 6);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (3, 'Zone France', NULL);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (4, 'Zone Dinosaure', NULL);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (5, 'Zone Aquatique', NULL);
 
 -- Rattachement des personnels a leur zone
 UPDATE Personnel SET id_zone = 1 WHERE id_personnel IN (1, 2, 3);
 UPDATE Personnel SET id_zone = 2 WHERE id_personnel IN (4, 5, 6);
+UPDATE Personnel SET id_zone = 3 WHERE id_personnel IN (7, 8, 9);
+UPDATE Personnel SET id_zone = 4 WHERE id_personnel IN (10);
 
 /*Contrats (1 par personnel)*/
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (1, 4500.00, DATE '2022-01-01', NULL, 1, 1);
@@ -32,6 +38,17 @@ INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (4, 4444.00, DATE '2024-04-04', NULL, 4, 4);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (5, 3200.00, DATE '2023-09-01', NULL, 5, 5);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (6, 3400.00, DATE '2023-08-01', NULL, 3, 6);
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel)
+VALUES (7, 2500.00, DATE '2024-01-10', NULL, 3, 7);
+ 
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel)
+VALUES (8, 2550.00, DATE '2024-03-01', NULL, 3, 8);
+ 
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel)
+VALUES (9, 2480.00, DATE '2024-06-15', NULL, 3, 9);
+ 
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel)
+VALUES (10, 2620.00, DATE '2025-01-05', NULL, 3, 10);
 
 /*Especes (9 especes)*/
 INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Panthera leo', 'Lion', 'N');
@@ -120,14 +137,14 @@ INSERT INTO Attitre (RFID, id_personnel) VALUES (1013, 3);
 
 -- Specialisations du soigneur sur les 3 especes
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Panthera leo', 3);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Loxodonta africana', 3);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Giraffa camelopardalis', 3);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Rattus norvegicus', 3);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Columba livia', 3);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Velociraptor mongoliensis', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Loxodonta africana', 6);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Giraffa camelopardalis', 7);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Rattus norvegicus', 8);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Columba livia', 9);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Velociraptor mongoliensis', 10);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Tyrannosaurus rex', 3);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Testudo graeca', 3);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Carcharodon carcharias', 3);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Testudo graeca', 6);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Carcharodon carcharias', 7);
 
 /*Soins (1 soin par animal, tous prodigues par le soigneur id=3)*/
 INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (1, DATE '2025-02-01', 'Simple', 3, 1001);
@@ -259,17 +276,10 @@ INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1001, 2, 4);
 /* ===================================== */
 /* 1 = directeur du zoo */
 INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par)
-VALUES (1, 2);
+VALUES (3, 8);
 
 INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par)
-VALUES (1, 3);
-
-INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par)
-VALUES (1, 5);
-
-/* 5 = directrice/directeur de magasin qui manage l'employé magasin */
-INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par)
-VALUES (5, 4);
+VALUES (6, 7);
 
 
 /* ===================================== */
