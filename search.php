@@ -3,6 +3,16 @@
     requireLogin();
     $conn = getConnection();
 
+    $rowPoste = fetchOne($conn,
+        "SELECT F.fonction
+        FROM Fonction F, Personnel P, Contrat C
+        WHERE P.id_personnel = C.id_personnel
+        AND F.id_fonction = C.id_fonction
+        AND P.id_personnel = :id",
+        [":id" => $_SESSION['id']]
+    );
+    $poste = $rowPoste['FONCTION'];
+
     //Valeur tapée dans la barre de recherche
     $searchVal = isset($_GET["search"]) ? trim($_GET["search"]) : "";
 
@@ -13,12 +23,12 @@
     //Sinon on affiche ce qu'il a coché
     $show = [
         "filtrePersonnel" => !isset($_GET["search"]) || isset($_GET["filtrePersonnel"]),
-        "filtreAnimaux"   => !isset($_GET["search"]) || isset($_GET["filtreAnimaux"]),
-        "filtreEspeces"   => !isset($_GET["search"]) || isset($_GET["filtreEspeces"]),
-        "filtreEnclos"    => !isset($_GET["search"]) || isset($_GET["filtreEnclos"]),
+        "filtreAnimaux" => !isset($_GET["search"]) || isset($_GET["filtreAnimaux"]),
+        "filtreEspeces" => !isset($_GET["search"]) || isset($_GET["filtreEspeces"]),
+        "filtreEnclos" => !isset($_GET["search"]) || isset($_GET["filtreEnclos"]),
         "filtreBoutiques" => !isset($_GET["search"]) || isset($_GET["filtreBoutiques"]),
-        "filtreZones"     => !isset($_GET["search"]) || isset($_GET["filtreZones"]),
-        "filtreContrats"  => !isset($_GET["search"]) || isset($_GET["filtreContrats"]),
+        "filtreZones" => !isset($_GET["search"]) || isset($_GET["filtreZones"]),
+        "filtreContrats" => !isset($_GET["search"]) || isset($_GET["filtreContrats"]),
     ];
 
     //Filtre archivage du personnel
@@ -98,10 +108,7 @@
         )" : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT A.RFID, A.nom_animal, E.nom_usuel, E.nom_latin,
-                    EN.id_enclos, Z.libelle_zone AS zone_libelle,
-                    P.prenom_personnel AS prenom_soigneur,
-                    P.nom_personnel AS nom_soigneur
+            "SELECT A.RFID, A.nom_animal, E.nom_usuel, E.nom_latin, EN.id_enclos, Z.libelle_zone AS zone_libelle, P.prenom_personnel AS prenom_soigneur, P.nom_personnel AS nom_soigneur
             FROM Animal A, Espece E, Enclos EN, Zone_zoo Z, Attitre AT, Personnel P
             WHERE A.nom_latin = E.nom_latin
             AND A.id_enclos = EN.id_enclos
@@ -323,15 +330,30 @@
     <body>
         <!-- Formulaire séparé pour la gestion des tables (action différente : gestion.php) -->
         <div class="nav-links">
-            <form method="get" action="gestion.php">
-                <label><input type="checkbox" name="tablePersonnel" value="1"> Personnel</label>
-                <label><input type="checkbox" name="tableEnclos"    value="1"> Enclos</label>
-                <label><input type="checkbox" name="tableBoutiques" value="1"> Boutiques</label>
-                <label><input type="checkbox" name="tableAnimaux"   value="1"> Animaux</label>
-                <label><input type="checkbox" name="tableEspeces"   value="1"> Espèces</label>
-                <input type="submit" value="Gérer">
-            </form>
-            <a href="soins.php"><button>Soins</button></a>
+            <?php if ($poste === "Directeur"): ?>
+                <form method="get" action="gestion.php">
+                    <label><input type="checkbox" name="tablePersonnel" value="1"> Personnel</label>
+                    <label><input type="checkbox" name="tableEnclos"    value="1"> Enclos</label>
+                    <label><input type="checkbox" name="tableBoutiques" value="1"> Boutiques</label>
+                    <label><input type="checkbox" name="tableAnimaux"   value="1"> Animaux</label>
+                    <label><input type="checkbox" name="tableEspeces"   value="1"> Espèces</label>
+                    <input type="submit" value="Gérer">
+                </form>
+            <?php elseif ($poste === "Soigneur"): ?>
+                <a href="gestion.php?tableAnimaux=1&tableEspeces=1"><button>Gérer</button></a>
+            <?php else: ?>
+                <a href="gestion.php?tableBoutiques=1"><button>Gérer</button></a>
+            <?php endif; ?>
+
+            <?php
+                if ($poste === "Soigneur" || $poste === "Directeur"){
+                    echo '<a href="soins.php"><button>Soins</button></a>';
+                }
+                if ($poste === "Comptable" || $poste === "Directeur de magasin" || $poste === "Directeur"){
+                    echo '<a href="comptes.php"><button>Comptes</button></a>';
+                }
+            ?>
+
         </div>
 
         <div class="header">
@@ -341,14 +363,13 @@
 
             <div class="search">
                 <!--
-                    Tout est dans un seul formulaire GET.
-                    Les paramètres envoyés dans l'URL :
-                    - search       : valeur de la barre
-                    - filtreXxx    : cases cochées (présentes = cochées, absentes = décochées)
-                    - archive      : valeur du select archivage
-                    - menace       : présent si la case espèces menacées est cochée
-                    - surface_min  : valeur minimale de surface
-                    - surface_max  : valeur maximale de surface
+                    Paramètres envoyés dans l'URL :
+                    - search : valeur de la barre
+                    - filtreXxx : cases cochées (présentes = cochées, absentes = décochées)
+                    - archive : valeur du select archivage
+                    - menace : présent si la case espèces menacées est cochée
+                    - surface_min : valeur minimale de surface
+                    - surface_max : valeur maximale de surface
                 -->
                 <form method="get">
                     <input class="searchbar" name="search" placeholder="Rechercher"
@@ -373,6 +394,7 @@
                                 echo '<input type="checkbox" name="'.$key.'" value="1" '.$checked.'>';
                                 echo $label;
                                 echo '</label>';
+                                echo '<br>';
                             }
                         ?>
                     </div>
@@ -387,6 +409,7 @@
                                 <option value="archives" <?php echo $archive === "archives" ? "selected" : ""; ?>> Archivés seulement </option>
                                 <option value="tous" <?php echo $archive === "tous" ? "selected" : ""; ?>> Tous</option>
                             </select>
+                            <br>
                         </div>
 
                         <!-- Filtre espèces menacées -->
@@ -396,13 +419,16 @@
                                     <?php echo $menace ? "checked" : ""; ?>>
                                 Espèces menacées uniquement
                             </label>
+                            <br>
                         </div>
 
                         <!-- Filtre surface  -->
                         <div class="filtre-group">
-                            <span class="filtre-group-label">Surface enclos :</span>
+                            <span class="filtre-group-label">Surface enclos :</span><br>
                             <input type="number" name="surface_min" placeholder="Min" value="<?php echo $surfaceMin !== null ? htmlspecialchars($surfaceMin) : ""; ?>">
+                            <br>
                             <input type="number" name="surface_max" placeholder="Max" value="<?php echo $surfaceMax !== null ? htmlspecialchars($surfaceMax) : ""; ?>">
+                            <br>
                         </div>
 
                     </div>

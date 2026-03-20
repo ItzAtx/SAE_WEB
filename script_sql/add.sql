@@ -4,6 +4,7 @@ INSERT INTO Fonction (id_fonction, fonction) VALUES (2, 'Technicien');
 INSERT INTO Fonction (id_fonction, fonction) VALUES (3, 'Soigneur');
 INSERT INTO Fonction (id_fonction, fonction) VALUES (4, 'Employe de magasin');
 INSERT INTO Fonction (id_fonction, fonction) VALUES (5, 'Directeur de magasin');
+INSERT INTO Fonction (id_fonction, fonction) VALUES (6, 'Comptable');
 
 
 /*Personnel (sans zone dans un premier temps, contrainte circulaire Zone_zoo <-> Personnel)*/
@@ -17,13 +18,14 @@ INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_pas
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel)VALUES (8, 'Renard', 'Sophie', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'sophie.renard', NULL, 'N');
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel)VALUES (9, 'Moreau', 'Théo', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'theo.moreau', NULL, 'N');
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel)VALUES (10, 'Laurent', 'Camille', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'camille.laurent', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel)VALUES (11, 'Lucas', 'Delcroix', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'lucas.delcroix', NULL, 'N');
 
 /*Zones (5 zones, responsable = Soigneurs id=1)*/
 INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (1, 'Zone Afrique', 3);
 INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (2, 'Zone Asie', 6);
-INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (3, 'Zone France', NULL);
-INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (4, 'Zone Dinosaure', NULL);
-INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (5, 'Zone Aquatique', NULL);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (3, 'Zone France', 7);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (4, 'Zone Dinosaure', 8);
+INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (5, 'Zone Aquatique', 9);
 
 -- Rattachement des personnels a leur zone
 UPDATE Personnel SET id_zone = 1 WHERE id_personnel IN (1, 2, 3);
@@ -38,17 +40,11 @@ INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (4, 4444.00, DATE '2024-04-04', NULL, 4, 4);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (5, 3200.00, DATE '2023-09-01', NULL, 5, 5);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (6, 3400.00, DATE '2023-08-01', NULL, 3, 6);
-INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel)
-VALUES (7, 2500.00, DATE '2024-01-10', NULL, 3, 7);
- 
-INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel)
-VALUES (8, 2550.00, DATE '2024-03-01', NULL, 3, 8);
- 
-INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel)
-VALUES (9, 2480.00, DATE '2024-06-15', NULL, 3, 9);
- 
-INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel)
-VALUES (10, 2620.00, DATE '2025-01-05', NULL, 3, 10);
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (7, 2500.00, DATE '2024-01-10', NULL, 3, 7);
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (8, 2550.00, DATE '2024-03-01', NULL, 3, 8);
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (9, 2480.00, DATE '2024-06-15', NULL, 3, 9);
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (10, 2620.00, DATE '2025-01-05', NULL, 3, 10);
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (11, 2620.00, DATE '2025-01-05', NULL, 6, 11);
 
 /*Especes (9 especes)*/
 INSERT INTO Espece (nom_latin, nom_usuel, menace) VALUES ('Panthera leo', 'Lion', 'N');
@@ -279,7 +275,7 @@ INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par)
 VALUES (3, 8);
 
 INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par)
-VALUES (6, 7);
+VALUES (6, 9);
 
 
 /* ===================================== */
