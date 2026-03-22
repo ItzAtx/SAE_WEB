@@ -47,11 +47,11 @@
     //Récupère tous les soins avec les infos de l'animal et du soigneur ayant réalisé le soin
     $soins = fetchAllRows(
         $conn,
-        "SELECT s.id_soin, s.date_soin, s.complexite, a.RFID, a.nom_animal, a.nom_latin, p.id_personnel, p.nom_personnel, p.prenom_personnel
-        FROM Soins s, Animal a, Personnel p
-        WHERE s.RFID = a.RFID
-        AND s.id_personnel = p.id_personnel
-        ORDER BY s.date_soin DESC, s.id_soin DESC"
+        "SELECT id_soin, date_soin, complexite, RFID, nom_animal, nom_latin, id_personnel, nom_personnel, prenom_personnel
+        FROM Vue_Soin
+        WHERE RFID = a.RFID
+        AND id_personnel = p.id_personnel
+        ORDER BY date_soin DESC"
     );
 
     /* =============================
@@ -59,14 +59,14 @@
     ================================ */
     //Récupère les animaux qui n'ont aucune entrée dans la table Attitre
     $animaux = fetchAllRows($conn,
-        "SELECT a.RFID, a.nom_animal, a.nom_latin
-        FROM Animal a
+        "SELECT VA.RFID, VA.nom_animal, VA.nom_latin
+        FROM Vue_Animal VA
         WHERE NOT EXISTS (
-            SELECT RFID
-            FROM Attitre at
-            WHERE at.RFID = a.RFID
+            SELECT *
+            FROM Attitre AT
+            WHERE AT.RFID = VA.RFID
         )
-        ORDER BY a.nom_animal"
+        ORDER BY VA.nom_animal"
     );
 
     /* ===================
@@ -74,13 +74,11 @@
     ====================== */
     //Récupère tous les soigneurs non archivés
     $soigneurs = fetchAllRows($conn,
-        "SELECT p.id_personnel, p.nom_personnel, p.prenom_personnel
-        FROM Personnel p, Contrat c, Fonction f
-        WHERE p.id_personnel = c.id_personnel
-        AND c.id_fonction = f.id_fonction
-        AND LOWER(f.fonction) = 'soigneur'
-        AND p.archiver_personnel = 'N'
-        ORDER BY p.nom_personnel"
+        "SELECT id_personnel, nom_personnel, prenom_personnel
+        FROM Vue_Personnel
+        WHERE fonction = 'Soigneur'
+        AND archiver_personnel = 'N'
+        ORDER BY nom_personnel"
     );
 
     /* =========================
@@ -91,17 +89,16 @@
     $rowsChefs = fetchAllRows($conn,
         "SELECT
             c.id_personnel_manager_de AS id_chef,
-            p_chef.nom_personnel AS nom_chef,
-            p_chef.prenom_personnel AS prenom_chef,
-            z.libelle_zone AS libelle_zone,
+            VZ.nom_personnel AS nom_chef,
+            VZ.prenom_personnel AS prenom_chef,
+            VZ.libelle_zone AS libelle_zone,
             c.id_personnel_est_manager_par AS id_sub,
             p_eq.nom_personnel AS nom_eq,
             p_eq.prenom_personnel AS prenom_eq
-        FROM Chef c, Personnel p_chef, Personnel p_eq, Zone_zoo z
-        WHERE c.id_personnel_manager_de = p_chef.id_personnel
+        FROM Chef c, Vue_Zone VZ, Personnel p_eq
+        WHERE c.id_personnel_manager_de = VZ.id_personnel
         AND c.id_personnel_est_manager_par = p_eq.id_personnel
-        AND z.id_personnel = p_chef.id_personnel
-        ORDER BY p_chef.nom_personnel"
+        ORDER BY VZ.nom_personnel"
     );
 
     //Clé = id du chef, valeur = ses infos + tableau de ses équipiers
@@ -123,12 +120,11 @@
 
     //Récupère les chefs qui n'ont aucun équipier (Responsable de zone)
     $chefsSeuls = fetchAllRows($conn,
-        "SELECT DISTINCT p.id_personnel AS id_chef, p.nom_personnel AS nom_chef, p.prenom_personnel AS prenom_chef, z.libelle_zone
-        FROM Personnel p, Zone_zoo z
-        WHERE z.id_personnel = p.id_personnel
-        AND p.archiver_personnel = 'N'
+        "SELECT DISTINCT VZ.id_personnel AS id_chef, VZ.nom_personnel AS nom_chef, VZ.prenom_personnel AS prenom_chef, VZ.libelle_zone
+        FROM Vue_Zone VZ
+        WHERE VZ.archiver_personnel = 'N'
         AND NOT EXISTS (
-            SELECT * FROM Chef ch WHERE ch.id_personnel_manager_de = p.id_personnel
+            SELECT * FROM Chef ch WHERE ch.id_personnel_manager_de = VZ.id_personnel
         )"
     );
 
@@ -150,25 +146,23 @@
     -ne sont pas responsable d'une zone
     */
     $soigneursNonManages = fetchAllRows($conn,
-        "SELECT DISTINCT p.id_personnel, p.nom_personnel, p.prenom_personnel
-        FROM Personnel p, Contrat c, Fonction f
-        WHERE p.id_personnel = c.id_personnel
-        AND c.id_fonction = f.id_fonction
-        AND LOWER(f.fonction) = 'soigneur'
-        AND p.archiver_personnel = 'N'
+        "SELECT DISTINCT id_personnel, nom_personnel, prenom_personnel
+        FROM Vue_Personnel VP
+        WHERE fonction = 'Soigneur'
+        AND archiver_personnel = 'N'
         AND NOT EXISTS (
             SELECT * FROM Chef ch
-            WHERE ch.id_personnel_est_manager_par = p.id_personnel
+            WHERE ch.id_personnel_est_manager_par = VP.id_personnel
         )
         AND NOT EXISTS (
         SELECT * FROM Chef ch
-        WHERE ch.id_personnel_manager_de = p.id_personnel
+        WHERE ch.id_personnel_manager_de = VP.id_personnel
         )
         AND NOT EXISTS (
-            SELECT * FROM Zone_zoo z
-            WHERE z.id_personnel = p.id_personnel
+            SELECT * FROM Vue_Zone VZ
+            WHERE VZ.id_personnel = VP.id_personnel
         )
-        ORDER BY p.nom_personnel"
+        ORDER BY nom_personnel"
     );
 
     /* ================
@@ -176,11 +170,10 @@
     ================== */
     //Récupère les soigneurs non archivés responsable d'une zone (un chef = un responsable de zone)
     $chefsSoigneurs = fetchAllRows($conn,
-        "SELECT DISTINCT p.id_personnel, p.nom_personnel, p.prenom_personnel, z.libelle_zone
-        FROM Personnel p, Zone_zoo z
-        WHERE z.id_personnel = p.id_personnel
-        AND p.archiver_personnel = 'N'
-        ORDER BY p.nom_personnel"
+        "SELECT DISTINCT id_personnel, nom_personnel, prenom_personnel, libelle_zone
+        FROM Vue_Zone
+        WHERE archiver_personnel = 'N'
+        ORDER BY nom_personnel"
     );
 
     /* =========================
@@ -188,12 +181,12 @@
     ========================= */
     //Récupère les espèces de spécialisation de chaque soigneur actif
     $rowsSpecialites = fetchAllRows($conn,
-        "SELECT p.id_personnel, p.nom_personnel, p.prenom_personnel, e.nom_latin, e.nom_usuel, e.menace
-        FROM Personnel p, Specialiser s, Espece e
-        WHERE s.id_personnel = p.id_personnel
+        "SELECT VP.id_personnel, VP.nom_personnel, VP.prenom_personnel, e.nom_latin, e.nom_usuel, e.menace
+        FROM Vue_Personnel VP, Specialiser s, Espece e
+        WHERE s.id_personnel = VP.id_personnel
         AND s.nom_latin = e.nom_latin
-        AND p.archiver_personnel = 'N'
-        ORDER BY p.nom_personnel, p.prenom_personnel, e.nom_usuel"
+        AND VP.archiver_personnel = 'N'
+        ORDER BY VP.nom_personnel, VP.prenom_personnel, e.nom_usuel"
     );
 
     //Clé = id du soigneur, valeur = ses infos + tableau de ses espèces
@@ -220,23 +213,21 @@
     ========================= */
     //Récupère tous les animaux qui ont un soigneur attitré
     $animauxSoigneurs = fetchAllRows($conn,
-        "SELECT a.RFID, a.nom_animal, a.nom_latin, e.nom_usuel, p.id_personnel, p.nom_personnel, p.prenom_personnel
-        FROM Animal a, Espece e, Attitre at, Personnel p
-        WHERE a.nom_latin = e.nom_latin
-        AND at.RFID = a.RFID
-        AND p.id_personnel = at.id_personnel
-        ORDER BY a.nom_animal"
+        "SELECT VA.RFID, VA.nom_animal, VA.nom_latin, VA.nom_usuel, P.id_personnel, P.nom_personnel, P.prenom_personnel
+        FROM Vue_Animal VA, Attitre AT, Personnel P
+        WHERE AT.RFID = VA.RFID
+        AND P.id_personnel = AT.id_personnel
+        ORDER BY VA.nom_animal"
     );
 
     //Récupère les animaux qui n'ont pas de soigneur attitré (aucune entrée dans Attitre)
     $animauxSansSoigneurAttitre = fetchAllRows($conn,
-        "SELECT a.RFID, a.nom_animal, a.nom_latin, e.nom_usuel
-        FROM Animal a, Espece e
-        WHERE a.nom_latin = e.nom_latin
-        AND NOT EXISTS (
-            SELECT * FROM Attitre at WHERE at.RFID = a.RFID
+        "SELECT VA.RFID, VA.nom_animal, VA.nom_latin, VA.nom_usuel
+        FROM Vue_Animal VA
+        WHERE NOT EXISTS (
+            SELECT * FROM Attitre AT WHERE AT.RFID = VA.RFID
         )
-        ORDER BY a.nom_animal"
+        ORDER BY VA.nom_animal"
     );
 
 ?>

@@ -23,9 +23,8 @@
                 //Requête préparée, execution et récupération des données
                 $row = fetchOne($conn,
                     "SELECT prenom_personnel, nom_personnel, id_connexion, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut
-                    FROM Personnel p, Contrat c
-                    WHERE p.id_personnel = c.id_personnel
-                    AND p.id_personnel = :identifiant",
+                    FROM Vue_Personnel
+                    WHERE id_personnel = :identifiant",
                     [":identifiant" => $id_session]
                 );
 

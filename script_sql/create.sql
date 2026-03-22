@@ -316,4 +316,94 @@ ALTER TABLE Repas
 ADD CONSTRAINT fk_id_personnel_repas
 FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
 
+CREATE VIEW Vue_Personnel AS
+SELECT 
+    P.id_personnel,
+    P.prenom_personnel,
+    P.nom_personnel,
+    P.id_connexion,
+    P.archiver_personnel,
+    P.id_zone,
+    P.mot_de_passe,
+    C.id_contrat,
+    C.salaire,
+    C.date_debut,
+    F.id_fonction,
+    F.fonction,
+    Z.libelle_zone
+FROM Personnel P, Contrat C, Fonction F, Zone_zoo Z
+WHERE P.id_personnel = C.id_personnel
+AND C.id_fonction = F.id_fonction
+AND P.id_zone = Z.id_zone;
+
+CREATE VIEW Vue_Animal AS
+SELECT 
+    A.RFID,
+    A.nom_animal,
+    A.date_naissance,
+    A.poids,
+    A.id_enclos,
+    A.RFID_a_pour_pere,
+    A.RFID_a_pour_mere,
+    E.nom_latin,
+    E.nom_usuel,
+    E.menace,
+    EN.id_zone,
+    Z.libelle_zone
+FROM Animal A, Espece E, Enclos EN, Zone_zoo Z
+WHERE A.nom_latin = E.nom_latin
+AND A.id_enclos = EN.id_enclos
+AND EN.id_zone = Z.id_zone;
+
+CREATE VIEW Vue_Soin AS
+SELECT 
+    S.id_soin,
+    S.date_soin,
+    S.complexite,
+    A.RFID,
+    A.nom_animal,
+    A.nom_latin,
+    P.id_personnel,
+    P.nom_personnel,
+    P.prenom_personnel
+FROM Soins S, Animal A, Personnel P
+WHERE S.RFID = A.RFID
+AND S.id_personnel = P.id_personnel;
+
+CREATE VIEW Vue_Boutique AS
+SELECT 
+    B.id_boutique,
+    B.nom_boutique,
+    B.type_boutique,
+    B.id_personnel,
+    B.id_zone,
+    Z.libelle_zone,
+    P.prenom_personnel,
+    P.nom_personnel
+FROM Boutique B, Zone_zoo Z, Personnel P
+WHERE B.id_zone = Z.id_zone
+AND B.id_personnel = P.id_personnel;
+
+CREATE VIEW Vue_Enclos AS
+SELECT 
+    E.id_enclos,
+    E.latitude,
+    E.longitude,
+    E.surface,
+    E.id_zone,
+    Z.libelle_zone
+FROM Enclos E, Zone_zoo Z
+WHERE E.id_zone = Z.id_zone;
+
+CREATE VIEW Vue_Zone AS
+SELECT
+    Z.id_zone,
+    Z.libelle_zone,
+    P.id_personnel,
+    P.prenom_personnel,
+    P.nom_personnel,
+    P.archiver_personnel
+FROM Zone_zoo Z, Personnel P
+WHERE Z.id_personnel = P.id_personnel;
+
 COMMIT;

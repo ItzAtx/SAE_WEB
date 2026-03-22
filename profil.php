@@ -20,11 +20,9 @@
 
                     //Préparation de la requête, execution et récupération des données
                     $row = fetchOne($conn,
-                            "SELECT p.prenom_personnel, p.nom_personnel, p.id_connexion, c.salaire, c.date_debut, f.fonction
-                             FROM Personnel p, Contrat c, Fonction f
-                             WHERE p.id_personnel = c.id_personnel
-                             AND c.id_fonction = f.id_fonction
-                             AND p.id_personnel = :identifiant",
+                            "SELECT prenom_personnel, nom_personnel, id_connexion, salaire, date_debut, fonction
+                             FROM Vue_Personnel
+                             WHERE id_personnel = :identifiant",
                              [":identifiant" => $id_session]
                     );
 

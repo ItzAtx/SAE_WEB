@@ -276,13 +276,11 @@
 
         Génère un <select> avec uniquement les Directeurs de magasin*/
         $req = oci_parse($conn,
-            "SELECT P.id_personnel, P.prenom_personnel, P.nom_personnel
-            FROM Personnel P, Contrat C, Fonction F
-            WHERE P.id_personnel = C.id_personnel
-            AND C.id_fonction = F.id_fonction
-            AND F.fonction = 'Directeur de magasin'
-            AND P.archiver_personnel = 'N'
-            ORDER BY P.nom_personnel"
+            "SELECT id_personnel, prenom_personnel, nom_personnel
+            FROM Vue_Personnel
+            WHERE fonction = 'Directeur de magasin'
+            AND archiver_personnel = 'N'
+            ORDER BY nom_personnel"
         );
         oci_execute($req);
         echo '<select name="'.$name.'">'; //Création du select

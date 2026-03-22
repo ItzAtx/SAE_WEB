@@ -13,10 +13,9 @@
 
         //Vérifier la fonction du personnel à archiver
         $rowFonction = fetchOne($conn,
-            "SELECT F.fonction FROM Personnel P, Contrat C, Fonction F
-            WHERE P.id_personnel = C.id_personnel
-            AND C.id_fonction = F.id_fonction
-            AND P.id_personnel = :id",
+            "SELECT fonction 
+            FROM Vue_Personnel
+            WHERE id_personnel = :id",
             [':id' => $id]
         );
 
@@ -25,11 +24,10 @@
         if ($fonction === 'Directeur') {
             //On vérifie qu'il n'est pas le seul directeur
             $rowCount = fetchOne($conn,
-                "SELECT COUNT(*) AS nb FROM Personnel P, Contrat C, Fonction F
-                WHERE P.id_personnel = C.id_personnel
-                AND C.id_fonction = F.id_fonction
-                AND F.fonction = 'Directeur'
-                AND P.archiver_personnel = 'N'",
+                "SELECT COUNT(*) AS nb 
+                FROM Vue_Personnel
+                WHERE fonction = 'Directeur'
+                AND archiver_personnel = 'N'",
                 []
             );
             if ($rowCount['NB'] <= 1) {
@@ -44,11 +42,10 @@
         } elseif ($fonction === 'Directeur de magasin') {
             //On vérifie qu'il n'est pas le seul directeur de magasin
             $rowCount = fetchOne($conn,
-                "SELECT COUNT(*) AS nb FROM Personnel P, Contrat C, Fonction F
-                WHERE P.id_personnel = C.id_personnel
-                AND C.id_fonction = F.id_fonction
-                AND F.fonction = 'Directeur de magasin'
-                AND P.archiver_personnel = 'N'",
+                "SELECT COUNT(*) AS nb
+                FROM Vue_Personnel
+                WHERE fonction = 'Directeur de magasin'
+                AND archiver_personnel = 'N'",
                 []
             );
             if ($rowCount['NB'] <= 1) {
@@ -56,13 +53,11 @@
             } else {
                 //On trouve un nouveau directeur non archivé
                 $autreDir = fetchOne($conn,
-                    "SELECT MIN(P.id_personnel) AS id_personnel
-                    FROM Personnel P, Contrat C, Fonction F
-                    WHERE P.id_personnel = C.id_personnel
-                    AND C.id_fonction = F.id_fonction
-                    AND F.fonction = 'Directeur de magasin'
-                    AND P.archiver_personnel = 'N'
-                    AND P.id_personnel <> :id",
+                    "SELECT MIN(id_personnel) AS id_personnel
+                    FROM Vue_Personnel
+                    WHERE fonction = 'Directeur de magasin'
+                    AND archiver_personnel = 'N'
+                    AND id_personnel <> :id",
                     [':id' => $id]
                 );
                 //On réassigne les boutiques à un autre directeur
@@ -77,7 +72,7 @@
         } elseif ($fonction === 'Soigneur') {
             //On vérifie si ce soigneur est responsable d'une zone (= chef soigneur)
             $zoneResponsable = fetchOne($conn,
-                "SELECT id_zone FROM Zone_zoo WHERE id_personnel = :id",
+                "SELECT id_zone FROM Vue_Zone WHERE id_personnel = :id",
                 [':id' => $id]
             );
 
@@ -156,7 +151,7 @@
     AJOUT PERSONNEL
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_personnel'])) {
-        $fields = ['id_personnel','prenom_personnel','nom_personnel','mot_de_passe', 'id_connexion','zone_personnel','id_contrat','salaire','date_debut','fonction']; //Champs POST à vérifier
+        $fields = ['id_personnel', 'prenom_personnel', 'nom_personnel', 'mot_de_passe', 'id_connexion', 'zone_personnel', 'id_contrat', 'salaire', 'date_debut', 'fonction']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs du personnel.";
         } else {
@@ -165,7 +160,7 @@
             //Ajout des données dans Personnel
             execQuery($conn,
                 "INSERT INTO Personnel VALUES (:id_personnel, :nom_personnel, :prenom_personnel, :mot_de_passe, :id_connexion, :id_zone, 'N')",
-                [":id_personnel"=>$_POST['id_personnel'],":nom_personnel"=>$_POST['nom_personnel'], ":prenom_personnel"=>$_POST['prenom_personnel'],":mot_de_passe"=>$mot_de_passe, ":id_connexion"=>$_POST['id_connexion'],":id_zone"=>$id_zone]
+                [":id_personnel" => $_POST['id_personnel'],":nom_personnel" => $_POST['nom_personnel'], ":prenom_personnel" => $_POST['prenom_personnel'],":mot_de_passe" => $mot_de_passe, ":id_connexion" => $_POST['id_connexion'],":id_zone" => $id_zone]
             );
             //On cherche l'id_fonction correspondant à la fonction donnée
             $rowFonction = fetchOne($conn,
@@ -175,7 +170,7 @@
             //Ajout des données dans Contrat
             execQuery($conn,
                 "INSERT INTO Contrat VALUES (:id_contrat, :salaire, TO_DATE(:date_debut,'YYYY-MM-DD'), NULL, :id_fonction, :id_personnel)",
-                [":id_contrat"=>$_POST['id_contrat'],":salaire"=>$_POST['salaire'], ":date_debut"=>$_POST['date_debut'],":id_fonction"=>$rowFonction['ID_FONCTION'], ":id_personnel"=>$_POST['id_personnel']]
+                [":id_contrat" => $_POST['id_contrat'],":salaire" => $_POST['salaire'], ":date_debut" => $_POST['date_debut'],":id_fonction" => $rowFonction['ID_FONCTION'], ":id_personnel" => $_POST['id_personnel']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -186,16 +181,16 @@
     MODIFICATION PERSONNEL
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_personnel'])) {
-        $fields = ['edit_id_personnel','edit_prenom_personnel','edit_nom_personnel', 'edit_id_connexion','edit_zone_personnel','edit_salaire','edit_date_debut','edit_fonction']; //Champs POST à vérifier
+        $fields = ['edit_id_personnel', 'edit_prenom_personnel', 'edit_nom_personnel', 'edit_id_connexion', 'edit_zone_personnel', 'edit_salaire', 'edit_date_debut', 'edit_fonction']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs pour la modification.";
         } else {
             $id_zone = getIdZone($conn, $_POST['edit_zone_personnel']);
             //Modification des données dans Personnel
             execQuery($conn,
-                "UPDATE Personnel SET prenom_personnel=:prenom, nom_personnel=:nom, id_connexion=:id_connexion, id_zone=:id_zone
-                WHERE id_personnel=:id_personnel",
-                [":prenom"=>$_POST['edit_prenom_personnel'],":nom"=>$_POST['edit_nom_personnel'], ":id_connexion"=>$_POST['edit_id_connexion'],":id_zone"=>$id_zone, ":id_personnel"=>$_POST['edit_id_personnel']]
+                "UPDATE Personnel SET prenom_personnel= :prenom, nom_personnel= :nom, id_connexion= :id_connexion, id_zone= :id_zone
+                WHERE id_personnel= :id_personnel",
+                [":prenom" => $_POST['edit_prenom_personnel'], ":nom" => $_POST['edit_nom_personnel'], ":id_connexion" => $_POST['edit_id_connexion'], ":id_zone" => $id_zone, ":id_personnel" => $_POST['edit_id_personnel']]
             );
             //On cherche l'id_fonction correspondant à la fonction donnée
             $rowFonction = fetchOne($conn,
@@ -204,9 +199,9 @@
             );
             //Modification des données dans Contrat
             execQuery($conn,
-                "UPDATE Contrat SET salaire=:salaire, date_debut=TO_DATE(:date_debut,'YYYY-MM-DD'), id_fonction=:id_fonction
-                WHERE id_personnel=:id_personnel",
-                [":salaire"=>$_POST['edit_salaire'],":date_debut"=>$_POST['edit_date_debut'], ":id_fonction"=>$rowFonction['ID_FONCTION'],":id_personnel"=>$_POST['edit_id_personnel']]
+                "UPDATE Contrat SET salaire = :salaire, date_debut = TO_DATE(:date_debut,'YYYY-MM-DD'), id_fonction = :id_fonction
+                WHERE id_personnel = :id_personnel",
+                [":salaire" => $_POST['edit_salaire'],":date_debut" => $_POST['edit_date_debut'], ":id_fonction" => $rowFonction['ID_FONCTION'],":id_personnel" => $_POST['edit_id_personnel']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -222,7 +217,7 @@
         //Suppression en cascade de tous les animaux de l'enclos
         $reqAnimaux = execQuery($conn, 
             "SELECT RFID 
-            FROM Animal 
+            FROM Vue_Animal 
             WHERE id_enclos = :id",
             [':id' => $id]
         );
@@ -254,7 +249,7 @@
     AJOUT ENCLOS
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_enclos'])) {
-        $fields = ['id_enclos','latitude','longitude','surface','zone_enclos']; //Champs POST à vérifier
+        $fields = ['id_enclos', 'latitude', 'longitude', 'surface', 'zone_enclos']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs de l'enclos.";
         } else {
@@ -262,7 +257,7 @@
             //Ajout des données dans Enclos
             execQuery($conn,
                 "INSERT INTO Enclos VALUES (:id_enclos, :latitude, :longitude, :surface, :id_zone)",
-                [":id_enclos"=>$_POST['id_enclos'],":latitude"=>$_POST['latitude'], ":longitude"=>$_POST['longitude'],":surface"=>$_POST['surface'],":id_zone"=>$id_zone]
+                [":id_enclos" => $_POST['id_enclos'],":latitude" => $_POST['latitude'], ":longitude" => $_POST['longitude'],":surface" => $_POST['surface'],":id_zone" => $id_zone]
             );
             oci_commit($conn);
             redirectSelf();
@@ -273,16 +268,16 @@
     MODIFICATION ENCLOS
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_enclos'])) {
-        $fields = ['edit_id_enclos','edit_latitude','edit_longitude','edit_surface','edit_zone_enclos']; //Champs POST à vérifier
+        $fields = ['edit_id_enclos', 'edit_latitude', 'edit_longitude', 'edit_surface', 'edit_zone_enclos']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs pour la modification.";
         } else {
             $id_zone = getIdZone($conn, $_POST['edit_zone_enclos']);
             //Modification des données dans Enclos
             execQuery($conn,
-                "UPDATE Enclos SET latitude=:latitude, longitude=:longitude, surface=:surface, id_zone=:id_zone 
-                WHERE id_enclos=:id_enclos",
-                [":latitude"=>$_POST['edit_latitude'],":longitude"=>$_POST['edit_longitude'], ":surface"=>$_POST['edit_surface'],":id_zone"=>$id_zone, ":id_enclos"=>$_POST['edit_id_enclos']]
+                "UPDATE Enclos SET latitude = :latitude, longitude = :longitude, surface = :surface, id_zone = :id_zone 
+                WHERE id_enclos = :id_enclos",
+                [":latitude" => $_POST['edit_latitude'],":longitude" => $_POST['edit_longitude'], ":surface" => $_POST['edit_surface'],":id_zone" => $id_zone, ":id_enclos" => $_POST['edit_id_enclos']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -305,20 +300,20 @@
     AJOUT BOUTIQUE
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_boutique'])) {
-        $fields = ['id_boutique','nom_boutique','type_boutique','responsable_boutique','zone_boutique']; //Champs POST à vérifier
+        $fields = ['id_boutique', 'nom_boutique', 'type_boutique', 'responsable_boutique', 'zone_boutique']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs de la boutique.";
         } else {
             //On cherche l'id_personnel correspondant au responsable de la boutique donnée
             $rowPers = fetchOne($conn,
-                "SELECT id_personnel FROM Personnel WHERE prenom_personnel || ' ' || nom_personnel = :responsable",
+                "SELECT id_personnel FROM Vue_Personnel WHERE prenom_personnel || ' ' || nom_personnel = :responsable",
                 [":responsable" => $_POST['responsable_boutique']]
             );
             $id_zone = getIdZone($conn, $_POST['zone_boutique']);
             //Ajout des données dans Boutique
             execQuery($conn,
                 "INSERT INTO Boutique VALUES (:id_boutique, :nom_boutique, :type_boutique, :id_personnel, :id_zone)",
-                [":id_boutique"=>$_POST['id_boutique'],":nom_boutique"=>$_POST['nom_boutique'], ":type_boutique"=>$_POST['type_boutique'],":id_personnel"=>$rowPers['ID_PERSONNEL'], ":id_zone"=>$id_zone]
+                [":id_boutique" => $_POST['id_boutique'],":nom_boutique" => $_POST['nom_boutique'], ":type_boutique" => $_POST['type_boutique'],":id_personnel" => $rowPers['ID_PERSONNEL'], ":id_zone" => $id_zone]
             );
             oci_commit($conn);
             redirectSelf();
@@ -329,21 +324,21 @@
     MODIFICATION BOUTIQUE
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_boutique'])) {
-        $fields = ['edit_id_boutique','edit_nom_boutique','edit_type_boutique', 'edit_responsable_boutique','edit_zone_boutique']; //Champs POST à vérifier
+        $fields = ['edit_id_boutique', 'edit_nom_boutique', 'edit_type_boutique', 'edit_responsable_boutique', 'edit_zone_boutique']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) { 
             $message = "Veuillez remplir tous les champs pour la modification.";
         } else {
             //On cherche l'id_personnel correspondant au responsable de la boutique donnée
             $rowPers = fetchOne($conn,
-                "SELECT id_personnel FROM Personnel WHERE prenom_personnel || ' ' || nom_personnel = :responsable",
+                "SELECT id_personnel FROM Vue_Personnel WHERE prenom_personnel || ' ' || nom_personnel = :responsable",
                 [":responsable" => $_POST['edit_responsable_boutique']]
             );
             $id_zone = getIdZone($conn, $_POST['edit_zone_boutique']); //Récupération de l'id_zone
             //Modification des données dans Boutique
             execQuery($conn,
-                "UPDATE Boutique SET nom_boutique=:nom, type_boutique=:type, id_personnel=:id_personnel, id_zone=:id_zone 
-                WHERE id_boutique=:id_boutique",
-                [":nom"=>$_POST['edit_nom_boutique'],":type"=>$_POST['edit_type_boutique'], ":id_personnel"=>$rowPers['ID_PERSONNEL'],":id_zone"=>$id_zone, ":id_boutique"=>$_POST['edit_id_boutique']]
+                "UPDATE Boutique SET nom_boutique = :nom, type_boutique = :type, id_personnel = :id_personnel, id_zone = :id_zone 
+                WHERE id_boutique = :id_boutique",
+                [":nom" => $_POST['edit_nom_boutique'],":type" => $_POST['edit_type_boutique'], ":id_personnel" => $rowPers['ID_PERSONNEL'],":id_zone" => $id_zone, ":id_boutique" => $_POST['edit_id_boutique']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -364,7 +359,7 @@
     AJOUT ANIMAL
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_animal'])) {
-        $fields = ['rfid','nom_animal','date_naissance','poids','id_enclos_animal','espece_animal']; //Champs POST à vérifier
+        $fields = ['rfid', 'nom_animal', 'date_naissance', 'poids', 'id_enclos_animal', 'espece_animal']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs de l'animal.";
         } else {
@@ -376,7 +371,7 @@
             //Ajout des données dans Animal
             execQuery($conn,
                 "INSERT INTO Animal VALUES (:rfid, :nom_animal, TO_DATE(:date_naissance,'YYYY-MM-DD'), :poids, NULL, NULL, :id_enclos, :nom_latin)",
-                [":rfid"=>$_POST['rfid'],":nom_animal"=>$_POST['nom_animal'], ":date_naissance"=>$_POST['date_naissance'],":poids"=>$_POST['poids'], ":id_enclos"=>$_POST['id_enclos_animal'],":nom_latin"=>$rowEspece['NOM_LATIN']]
+                [":rfid" => $_POST['rfid'],":nom_animal" => $_POST['nom_animal'], ":date_naissance" => $_POST['date_naissance'],":poids" => $_POST['poids'], ":id_enclos" => $_POST['id_enclos_animal'],":nom_latin" => $rowEspece['NOM_LATIN']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -387,7 +382,7 @@
     MODIFICATION ANIMAL
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_animal'])) {
-        $fields = ['edit_rfid','edit_nom_animal','edit_date_naissance','edit_poids', 'edit_id_enclos_animal','edit_espece_animal']; //Champs POST à vérifier
+        $fields = ['edit_rfid', 'edit_nom_animal', 'edit_date_naissance', 'edit_poids', 'edit_id_enclos_animal', 'edit_espece_animal']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs pour la modification.";
         } else {
@@ -398,9 +393,9 @@
             );
             //Modification des données dans Animal
             execQuery($conn,
-                "UPDATE Animal SET nom_animal=:nom, date_naissance=TO_DATE(:dn,'YYYY-MM-DD'), poids=:poids, id_enclos=:id_enclos, nom_latin=:nom_latin 
-                WHERE RFID=:rfid",
-                [":nom"=>$_POST['edit_nom_animal'],":dn"=>$_POST['edit_date_naissance'], ":poids"=>$_POST['edit_poids'],":id_enclos"=>$_POST['edit_id_enclos_animal'], ":nom_latin"=>$rowEspece['NOM_LATIN'],":rfid"=>$_POST['edit_rfid']]
+                "UPDATE Animal SET nom_animal = :nom, date_naissance=TO_DATE(:dn,'YYYY-MM-DD'), poids = :poids, id_enclos = :id_enclos, nom_latin = :nom_latin 
+                WHERE RFID = :rfid",
+                [":nom" => $_POST['edit_nom_animal'],":dn" => $_POST['edit_date_naissance'], ":poids" => $_POST['edit_poids'],":id_enclos" => $_POST['edit_id_enclos_animal'], ":nom_latin" => $rowEspece['NOM_LATIN'],":rfid" => $_POST['edit_rfid']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -419,7 +414,7 @@
         //Les animaux de cette espèce doivent être supprimés en cascade
         $animaux = execQuery($conn,
             "SELECT RFID 
-            FROM Animal 
+            FROM Vue_Animal 
             WHERE nom_latin = :nl",
             [':nl' => $nl]
         );
@@ -436,14 +431,14 @@
     AJOUT ESPECE
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_espece'])) {
-        $fields = ['nom_latin','nom_usuel','menace']; //Champs POST à vérifier
+        $fields = ['nom_latin', 'nom_usuel', 'menace']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs de l'espèce.";
         } else {
             //Ajout des données dans Espece
             execQuery($conn,
                 "INSERT INTO Espece VALUES (:nom_latin, :nom_usuel, :menace)",
-                [":nom_latin"=>$_POST['nom_latin'], ":nom_usuel"=>$_POST['nom_usuel'], ":menace"=>$_POST['menace']]
+                [":nom_latin" => $_POST['nom_latin'], ":nom_usuel" => $_POST['nom_usuel'], ":menace" => $_POST['menace']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -454,15 +449,15 @@
     MODIFICATION ESPECE
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_espece'])) {
-        $fields = ['edit_nom_latin','edit_nom_usuel','edit_menace']; //Champs POST à vérifier
+        $fields = ['edit_nom_latin', 'edit_nom_usuel', 'edit_menace']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs pour la modification.";
         } else {
             //Modification des données dans Espece
             execQuery($conn,
-                "UPDATE Espece SET nom_usuel=:nom_usuel, menace=:menace 
-                WHERE nom_latin=:nom_latin",
-                [":nom_usuel"=>$_POST['edit_nom_usuel'], ":menace"=>$_POST['edit_menace'], ":nom_latin"=>$_POST['edit_nom_latin']]
+                "UPDATE Espece SET nom_usuel = :nom_usuel, menace = :menace 
+                WHERE nom_latin = :nom_latin",
+                [":nom_usuel" => $_POST['edit_nom_usuel'], ":menace" => $_POST['edit_menace'], ":nom_latin" => $_POST['edit_nom_latin']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -475,48 +470,41 @@
 
     //Affiche les données de Personnel
     $requetePersonnel = execQuery($conn,
-        "SELECT P.id_personnel, P.prenom_personnel, P.nom_personnel, P.id_connexion, Z.libelle_zone AS zone_libelle, C.id_contrat, C.salaire, TO_CHAR(C.date_debut,'YYYY-MM-DD') AS date_debut, F.fonction
-        FROM Personnel P, Contrat C, Fonction F, Zone_zoo Z
-        WHERE C.id_personnel = P.id_personnel
-        AND C.id_fonction = F.id_fonction
-        AND P.id_zone = Z.id_zone(+)
-        AND archiver_personnel = 'N'
-        ORDER BY P.id_personnel",
+        "SELECT id_personnel, prenom_personnel, nom_personnel, id_connexion, libelle_zone, id_contrat, salaire, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut, fonction
+        FROM Vue_Personnel
+        WHERE archiver_personnel = 'N'
+        ORDER BY id_personnel",
         []
     );
 
     //Affiche les données de Enclos
     $requeteEnclos = execQuery($conn,
-        "SELECT E.id_enclos, E.latitude, E.longitude, E.surface, Z.libelle_zone AS zone_libelle
-        FROM Enclos E, Zone_zoo Z
-        WHERE E.id_zone = Z.id_zone
-        ORDER BY E.id_enclos",
+        "SELECT id_enclos, latitude, longitude, surface, libelle_zone
+        FROM Vue_Enclos
+        ORDER BY id_enclos",
         []
     );
 
     //Affiche les données de Boutique
     $requeteBoutique = execQuery($conn,
-        "SELECT B.id_boutique, B.nom_boutique, B.type_boutique, P.prenom_personnel || ' ' || P.nom_personnel AS responsable, Z.libelle_zone AS zone_libelle
-        FROM Boutique B, Personnel P, Zone_zoo Z
-        WHERE B.id_personnel = P.id_personnel(+)
-        AND B.id_zone = Z.id_zone
-        ORDER BY B.id_boutique",
+        "SELECT id_boutique, nom_boutique, type_boutique, prenom_personnel || ' ' || nom_personnel AS responsable, libelle_zone
+        FROM Vue_Boutique
+        ORDER BY id_boutique",
         []
     );
 
     //Affiche les données de Animal
     $requeteAnimal = execQuery($conn,
-        "SELECT A.RFID, A.nom_animal, TO_CHAR(A.date_naissance,'YYYY-MM-DD') AS date_naissance, A.poids, A.id_enclos, E.nom_usuel
-        FROM Animal A, Espece E
-        WHERE A.nom_latin = E.nom_latin
-        ORDER BY A.RFID",
+        "SELECT RFID, nom_animal, TO_CHAR(date_naissance,'YYYY-MM-DD') AS date_naissance, poids, id_enclos, nom_usuel
+        FROM Vue_Animal
+        ORDER BY RFID",
         []
     );
 
     //Affiche les données de Espece
     $requeteEspece = execQuery($conn,
         "SELECT nom_latin, nom_usuel, menace 
-        FROM Espece 
+        FROM Espece
         ORDER BY nom_usuel",
         []
     );
@@ -588,7 +576,7 @@
                         <td><input type="text" name="edit_prenom_personnel" value="<?php echo htmlspecialchars($row['PRENOM_PERSONNEL']); ?>"></td>
                         <td><input type="text" name="edit_nom_personnel"   value="<?php echo htmlspecialchars($row['NOM_PERSONNEL']); ?>"></td>
                         <td><input type="text" name="edit_id_connexion"    value="<?php echo htmlspecialchars($row['ID_CONNEXION']); ?>"></td>
-                        <td><?php selectZone('edit_zone_personnel', $row['ZONE_LIBELLE']); ?></td>
+                        <td><?php selectZone('edit_zone_personnel', $row['LIBELLE_ZONE']); ?></td>
                         <td><?php echo htmlspecialchars($row['ID_CONTRAT']); ?></td>
                         <td><input type="text" name="edit_salaire"    value="<?php echo htmlspecialchars($row['SALAIRE']); ?>"></td>
                         <td><input type="date" name="edit_date_debut" value="<?php echo htmlspecialchars($row['DATE_DEBUT']); ?>"></td>
@@ -607,7 +595,7 @@
                     <td><?php echo htmlspecialchars($row['PRENOM_PERSONNEL']); ?></td>
                     <td><?php echo htmlspecialchars($row['NOM_PERSONNEL']); ?></td>
                     <td><?php echo htmlspecialchars($row['ID_CONNEXION']); ?></td>
-                    <td><?php echo htmlspecialchars($row['ZONE_LIBELLE']); ?></td>
+                    <td><?php echo htmlspecialchars($row['LIBELLE_ZONE']); ?></td>
                     <td><?php echo htmlspecialchars($row['ID_CONTRAT']); ?></td>
                     <td><?php echo htmlspecialchars($row['SALAIRE']); ?></td>
                     <td><?php echo htmlspecialchars($row['DATE_DEBUT']); ?></td>
@@ -662,7 +650,7 @@
                         <td><input type="text" name="edit_latitude"  value="<?php echo htmlspecialchars($row['LATITUDE']); ?>"></td>
                         <td><input type="text" name="edit_longitude" value="<?php echo htmlspecialchars($row['LONGITUDE']); ?>"></td>
                         <td><input type="text" name="edit_surface"   value="<?php echo htmlspecialchars($row['SURFACE']); ?>"></td>
-                        <td><?php selectZone('edit_zone_enclos', $row['ZONE_LIBELLE']); ?></td>
+                        <td><?php selectZone('edit_zone_enclos', $row['LIBELLE_ZONE']); ?></td>
                         <td>
                             <input type="submit" name="modifier_enclos" value="Valider">
                             <?php btnAnnuler(); ?>
@@ -676,7 +664,7 @@
                     <td><?php echo htmlspecialchars($row['LATITUDE']); ?></td>
                     <td><?php echo htmlspecialchars($row['LONGITUDE']); ?></td>
                     <td><?php echo htmlspecialchars($row['SURFACE']); ?></td>
-                    <td><?php echo htmlspecialchars($row['ZONE_LIBELLE']); ?></td>
+                    <td><?php echo htmlspecialchars($row['LIBELLE_ZONE']); ?></td>
                     <td>
                         <?php btnModifier('edit_enclos', $row['ID_ENCLOS']); ?>
                         <?php btnSupprimer('supprimer_id_enclos', $row['ID_ENCLOS']); ?>
@@ -722,7 +710,7 @@
                         <td><input type="text" name="edit_nom_boutique" value="<?php echo htmlspecialchars($row['NOM_BOUTIQUE']); ?>"></td>
                         <td><input type="text" name="edit_type_boutique" value="<?php echo htmlspecialchars($row['TYPE_BOUTIQUE']); ?>"></td>
                         <td><?php selectResponsableBoutique($conn, 'edit_responsable_boutique', $row['RESPONSABLE']); ?></td>
-                        <td><?php selectZone('edit_zone_boutique', $row['ZONE_LIBELLE']); ?></td>
+                        <td><?php selectZone('edit_zone_boutique', $row['LIBELLE_ZONE']); ?></td>
                         <td>
                             <input type="submit" name="modifier_boutique" value="Valider">
                             <?php btnAnnuler(); ?>
@@ -736,7 +724,7 @@
                     <td><?php echo htmlspecialchars($row['NOM_BOUTIQUE']); ?></td>
                     <td><?php echo htmlspecialchars($row['TYPE_BOUTIQUE']); ?></td>
                     <td><?php echo htmlspecialchars($row['RESPONSABLE']); ?></td>
-                    <td><?php echo htmlspecialchars($row['ZONE_LIBELLE']); ?></td>
+                    <td><?php echo htmlspecialchars($row['LIBELLE_ZONE']); ?></td>
                     <td>
                         <?php btnModifier('edit_boutique', $row['ID_BOUTIQUE']); ?>
                         <?php btnSupprimer('supprimer_id_boutique', $row['ID_BOUTIQUE']); ?>

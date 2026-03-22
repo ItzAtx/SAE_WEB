@@ -26,7 +26,7 @@
                         //Préparation de la requête, execution et récupération des données
                         $row = fetchOne($conn,
                             "SELECT id_personnel, mot_de_passe
-                            FROM Personnel
+                            FROM Vue_Personnel
                             WHERE id_connexion = :identifiant
                             AND archiver_personnel = 'N'",
                             [":identifiant" => $id]

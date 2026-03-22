@@ -4,11 +4,9 @@
     $conn = getConnection();
 
     $rowPoste = fetchOne($conn,
-        "SELECT F.fonction
-        FROM Fonction F, Personnel P, Contrat C
-        WHERE P.id_personnel = C.id_personnel
-        AND F.id_fonction = C.id_fonction
-        AND P.id_personnel = :id",
+        "SELECT fonction
+        FROM Vue_Personnel
+        WHERE id_personnel = :id",
         [":id" => $_SESSION['id']]
     );
     $poste = $rowPoste['FONCTION'];
@@ -49,31 +47,29 @@
 
         //Filtre d'archivage
         if ($archive === "actifs") {
-            $whereArchive = "AND P.archiver_personnel = 'N'"; //Seulement les actifs
+            $whereArchive = "AND archiver_personnel = 'N'"; //Seulement les actifs
         } elseif ($archive === "archives") {
-            $whereArchive = "AND P.archiver_personnel = 'O'"; //Seulement les archivés
+            $whereArchive = "AND archiver_personnel = 'O'"; //Seulement les archivés
         } else {
             $whereArchive = ""; //Actifs + archivés
         }
 
         //Si l'utilisateur a tapé qlq chose dans la barre de recherche alors
         $whereSearch = $aCherche ? "AND (
-            LOWER(P.prenom_personnel) LIKE :pattern
-            OR LOWER(P.nom_personnel) LIKE :pattern
-            OR LOWER(P.id_connexion) LIKE :pattern
-            OR TO_CHAR(P.id_personnel) LIKE :pattern
-            OR LOWER(F.fonction) LIKE :pattern
+            LOWER(prenom_personnel) LIKE :pattern
+            OR LOWER(nom_personnel) LIKE :pattern
+            OR LOWER(id_connexion) LIKE :pattern
+            OR TO_CHAR(id_personnel) LIKE :pattern
+            OR LOWER(fonction) LIKE :pattern
         )" : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT P.id_personnel, P.prenom_personnel, P.nom_personnel, P.id_connexion, P.archiver_personnel, Z.libelle_zone, F.fonction
-            FROM Personnel P, Zone_zoo Z, Contrat C, Fonction F
-            WHERE P.id_zone = Z.id_zone
-            AND P.id_personnel = C.id_personnel
-            AND C.id_fonction = F.id_fonction
+            "SELECT id_personnel, prenom_personnel, nom_personnel, id_connexion, archiver_personnel, libelle_zone, fonction
+            FROM Vue_Personnel
+            WHERE 1 = 1
             $whereArchive
             $whereSearch
-            ORDER BY P.id_personnel",
+            ORDER BY id_personnel",
             $aCherche ? [":pattern" => $pattern] : []
         );
 
@@ -95,30 +91,27 @@
     if ($show["filtreAnimaux"]) { //Si filtre Animal actif
 
         //Filtre d'espece menacée
-        $whereMenace = $menace ? "AND E.menace = 'O'" : "";
+        $whereMenace = $menace ? "AND VA.menace = 'O'" : "";
 
         $whereSearch = $aCherche ? "AND (
-            LOWER(A.nom_animal) LIKE :pattern
-            OR TO_CHAR(A.RFID) LIKE :pattern
-            OR LOWER(E.nom_usuel) LIKE :pattern
-            OR LOWER(E.nom_latin) LIKE :pattern
-            OR LOWER(Z.libelle_zone) LIKE :pattern
+            LOWER(VA.nom_animal) LIKE :pattern
+            OR TO_CHAR(VA.RFID) LIKE :pattern
+            OR LOWER(VA.nom_usuel) LIKE :pattern
+            OR LOWER(VA.nom_latin) LIKE :pattern
+            OR LOWER(VA.libelle_zone) LIKE :pattern
             OR LOWER(P.prenom_personnel) LIKE :pattern
             OR LOWER(P.nom_personnel) LIKE :pattern
         )" : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT A.RFID, A.nom_animal, E.nom_usuel, E.nom_latin, EN.id_enclos, Z.libelle_zone AS zone_libelle, P.prenom_personnel AS prenom_soigneur, P.nom_personnel AS nom_soigneur
-            FROM Animal A, Espece E, Enclos EN, Zone_zoo Z, Attitre AT, Personnel P
-            WHERE A.nom_latin = E.nom_latin
-            AND A.id_enclos = EN.id_enclos
-            AND EN.id_zone = Z.id_zone
-            AND A.RFID = AT.RFID
+            "SELECT VA.RFID, VA.nom_animal, VA.nom_usuel, VA.nom_latin, VA.id_enclos, VA.libelle_zone, P.prenom_personnel AS prenom_soigneur, P.nom_personnel AS nom_soigneur
+            FROM Vue_Animal VA, Attitre AT, Personnel P
+            WHERE VA.RFID = AT.RFID
             AND AT.id_personnel = P.id_personnel
             AND P.archiver_personnel = 'N'
             $whereMenace
             $whereSearch
-            ORDER BY A.RFID",
+            ORDER BY VA.RFID",
             $aCherche ? [":pattern" => $pattern] : []
         );
 
@@ -128,7 +121,7 @@
                 "titre"  => $row["NOM_ANIMAL"],
                 "ligne1" => "RFID : ".$row["RFID"],
                 "ligne2" => "Espèce : ".$row["NOM_USUEL"]." (".$row["NOM_LATIN"].")",
-                "ligne3" => "Enclos : ".$row["ID_ENCLOS"]." | Zone : ".$row["ZONE_LIBELLE"],
+                "ligne3" => "Enclos : ".$row["ID_ENCLOS"]." | Zone : ".$row["LIBELLE_ZONE"],
                 "ligne4" => "Soigneur : ".$row["PRENOM_SOIGNEUR"]." ".$row["NOM_SOIGNEUR"],
             ];
         }
@@ -138,19 +131,19 @@
     if ($show["filtreEspeces"]) { //Si filtre Espece actif
 
         //Filtre d'espece menacée
-        $whereMenace = $menace ? "AND E.menace = 'O'" : "";
+        $whereMenace = $menace ? "AND menace = 'O'" : "";
 
         $whereSearch = $aCherche
-            ? "AND (LOWER(E.nom_usuel) LIKE :pattern OR LOWER(E.nom_latin) LIKE :pattern)"
+            ? "AND (LOWER(nom_usuel) LIKE :pattern OR LOWER(nom_latin) LIKE :pattern)"
             : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT E.nom_usuel, E.nom_latin, E.menace
-            FROM Espece E
-            WHERE 1=1 --Toujours vrai, simplement pour utiliser le WHERE
+            "SELECT nom_usuel, nom_latin, menace
+            FROM Vue_Animal
+            WHERE 1 = 1 --Toujours vrai, simplement pour utiliser le WHERE
             $whereMenace
             $whereSearch
-            ORDER BY E.nom_usuel",
+            ORDER BY nom_usuel",
             $aCherche ? [":pattern" => $pattern] : []
         );
 
@@ -174,25 +167,25 @@
         $paramsEnclos = [];
 
         if ($surfaceMin !== null) {
-            $whereSurface = " AND E.surface >= :surface_min"; 
+            $whereSurface = " AND VE.surface >= :surface_min"; 
             $paramsEnclos[":surface_min"] = $surfaceMin;
         }
         if ($surfaceMax !== null) {
-            $whereSurface .= " AND E.surface <= :surface_max"; //On concatène au cas où s'il y a une surface min
+            $whereSurface .= " AND VE.surface <= :surface_max"; //On concatène au cas où s'il y a une surface min
             $paramsEnclos[":surface_max"] = $surfaceMax;
         }
 
         $whereSearch = $aCherche ? "AND (
-            TO_CHAR(E.id_enclos) LIKE :pattern
-            OR LOWER(Z.libelle_zone) LIKE :pattern
+            id_enclos LIKE :pattern
+            OR LOWER(libelle_zone) LIKE :pattern
             OR EXISTS (
-                SELECT nom_animal FROM Animal A2
-                WHERE A2.id_enclos = E.id_enclos
-                AND LOWER(A2.nom_animal) LIKE :pattern
+                SELECT nom_animal FROM Vue_Animal VA
+                WHERE VA.id_enclos = VE.id_enclos
+                AND LOWER(VA.nom_animal) LIKE :pattern
             )
             OR EXISTS (
                 SELECT id_enclos FROM Possede PO, Particularite PA
-                WHERE PO.id_enclos = E.id_enclos
+                WHERE PO.id_enclos = VE.id_enclos
                 AND PO.id_particularite = PA.id_particularite
                 AND LOWER(PA.libelle_particularite) LIKE :pattern
             )
@@ -204,12 +197,12 @@
         }
 
         $rows = fetchAllRows($conn,
-            "SELECT E.id_enclos, E.surface, Z.libelle_zone AS zone_libelle
-            FROM Enclos E, Zone_zoo Z
-            WHERE E.id_zone = Z.id_zone
+            "SELECT id_enclos, surface, VE.libelle_zone
+            FROM Vue_Enclos VE
+            WHERE 1 = 1
             $whereSurface
             $whereSearch
-            ORDER BY E.id_enclos",
+            ORDER BY id_enclos",
             $paramsEnclos
         );
 
@@ -217,7 +210,7 @@
             $results[] = [
                 "type"   => "Enclos",
                 "titre"  => "Enclos ".$row["ID_ENCLOS"],
-                "ligne1" => "Zone : ".$row["ZONE_LIBELLE"],
+                "ligne1" => "Zone : ".$row["LIBELLE_ZONE"],
                 "ligne2" => "Surface : ".$row["SURFACE"]." m²",
                 "ligne3" => "",
                 "ligne4" => "",
@@ -229,19 +222,18 @@
     if ($show["filtreBoutiques"]) { //Si filtre Boutique actif
 
         $whereSearch = $aCherche ? "AND (
-            LOWER(B.nom_boutique) LIKE :pattern
-            OR LOWER(B.type_boutique) LIKE :pattern
-            OR TO_CHAR(B.id_boutique) LIKE :pattern
-            OR LOWER(Z.libelle_zone) LIKE :pattern
+            LOWER(nom_boutique) LIKE :pattern
+            OR LOWER(type_boutique) LIKE :pattern
+            OR TO_CHAR(id_boutique) LIKE :pattern
+            OR LOWER(libelle_zone) LIKE :pattern
         )" : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT B.id_boutique, B.nom_boutique, B.type_boutique, Z.libelle_zone AS zone_libelle, P.prenom_personnel, P.nom_personnel
-            FROM Boutique B, Zone_zoo Z, Personnel P
-            WHERE B.id_zone = Z.id_zone
-            AND B.id_personnel = P.id_personnel
+            "SELECT id_boutique, nom_boutique, type_boutique, libelle_zone, prenom_personnel, nom_personnel
+            FROM Vue_Boutique
+            WHERE 1 = 1
             $whereSearch
-            ORDER BY B.id_boutique",
+            ORDER BY id_boutique",
             $aCherche ? [":pattern" => $pattern] : []
         );
 
@@ -251,27 +243,26 @@
                 "titre"  => $row["NOM_BOUTIQUE"],
                 "ligne1" => "ID : ".$row["ID_BOUTIQUE"],
                 "ligne2" => "Type : ".$row["TYPE_BOUTIQUE"],
-                "ligne3" => "Zone : ".$row["ZONE_LIBELLE"],
+                "ligne3" => "Zone : ".$row["LIBELLE_ZONE"],
                 "ligne4" => "Responsable : ".$row["PRENOM_PERSONNEL"]." ".$row["NOM_PERSONNEL"],
             ];
         }
     }
 
     /* ========= ZONES ========= */
-    if ($show["filtreZones"]) { //Si filtre Zone actif
+    if ($show["filtreZones"]) {
 
         $whereSearch = $aCherche ? "AND (
-            LOWER(Z.libelle_zone) LIKE :pattern
-            OR TO_CHAR(Z.id_zone) LIKE :pattern
+            LOWER(VZ.libelle_zone) LIKE :pattern
+            OR TO_CHAR(VZ.id_zone) LIKE :pattern
         )" : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT Z.id_zone, Z.libelle_zone, P.prenom_personnel, P.nom_personnel
-            FROM Zone_zoo Z, Personnel P
-            WHERE Z.id_personnel = P.id_personnel
-            AND P.archiver_personnel = 'N'
+            "SELECT VZ.id_zone, VZ.libelle_zone, VZ.prenom_personnel, VZ.nom_personnel
+            FROM Vue_Zone VZ
+            WHERE VZ.archiver_personnel = 'N'
             $whereSearch
-            ORDER BY Z.id_zone",
+            ORDER BY VZ.id_zone",
             $aCherche ? [":pattern" => $pattern] : []
         );
 
@@ -291,19 +282,18 @@
     if ($show["filtreContrats"]) { //Si filtre Contrat actif
 
         $whereSearch = $aCherche ? "AND (
-            TO_CHAR(C.id_contrat) LIKE :pattern
-            OR LOWER(P.prenom_personnel) LIKE :pattern
-            OR LOWER(P.nom_personnel) LIKE :pattern
-            OR LOWER(F.fonction) LIKE :pattern
+            id_contrat LIKE :pattern
+            OR LOWER(prenom_personnel) LIKE :pattern
+            OR LOWER(nom_personnel) LIKE :pattern
+            OR LOWER(fonction) LIKE :pattern
         )" : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT C.id_contrat, C.salaire, TO_CHAR(C.date_debut, 'DD/MM/YYYY') AS date_debut, P.prenom_personnel, P.nom_personnel, F.fonction
-            FROM Contrat C, Personnel P, Fonction F
-            WHERE C.id_personnel = P.id_personnel
-            AND C.id_fonction = F.id_fonction
+            "SELECT id_contrat, salaire, TO_CHAR(date_debut, 'DD/MM/YYYY') AS date_debut, prenom_personnel, nom_personnel, fonction
+            FROM Vue_Personnel
+            WHERE 1 = 1
             $whereSearch
-            ORDER BY C.id_contrat",
+            ORDER BY id_contrat",
             $aCherche ? [":pattern" => $pattern] : []
         );
 
