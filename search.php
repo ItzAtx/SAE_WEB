@@ -64,7 +64,7 @@
         )" : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT id_personnel, prenom_personnel, nom_personnel, id_connexion, archiver_personnel, libelle_zone, fonction
+            "SELECT DISTINCT id_personnel, prenom_personnel, nom_personnel, id_connexion, archiver_personnel, libelle_zone, fonction
             FROM Vue_Personnel
             WHERE 1 = 1
             $whereArchive
@@ -139,7 +139,7 @@
 
         $rows = fetchAllRows($conn,
             "SELECT nom_usuel, nom_latin, menace
-            FROM Vue_Animal
+            FROM Espece
             WHERE 1 = 1 --Toujours vrai, simplement pour utiliser le WHERE
             $whereMenace
             $whereSearch
