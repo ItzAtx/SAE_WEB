@@ -289,7 +289,7 @@
         )" : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT id_contrat, salaire, TO_CHAR(date_debut, 'DD/MM/YYYY') AS date_debut, prenom_personnel, nom_personnel, fonction
+            "SELECT id_contrat, salaire, TO_CHAR(date_debut, 'DD/MM/YYYY') AS date_debut, TO_CHAR(date_fin, 'DD/MM/YYYY') AS date_fin, prenom_personnel, nom_personnel, fonction
             FROM Vue_Personnel
             WHERE 1 = 1
             $whereSearch
@@ -298,6 +298,7 @@
         );
 
         foreach ($rows as $row) {
+            $dateFin = $row["DATE_FIN"] ? "Date de fin : ".$row["DATE_FIN"] : "Contrat en cours";
             $results[] = [
                 "type"   => "Contrat",
                 "titre"  => $row["PRENOM_PERSONNEL"]." ".$row["NOM_PERSONNEL"],
@@ -305,6 +306,7 @@
                 "ligne2" => "Fonction : ".$row["FONCTION"],
                 "ligne3" => "Salaire : ".$row["SALAIRE"]." €",
                 "ligne4" => "Date de début : ".$row["DATE_DEBUT"],
+                "ligne5" => $dateFin
             ];
         }
     }
@@ -453,6 +455,10 @@
 
                         <?php if ($item["ligne4"] !== ""): ?>
                             <p><?php echo htmlspecialchars($item["ligne4"]); ?></p>
+                        <?php endif; ?>
+
+                        <?php if (key_exists("ligne5", $item) && ($item["ligne5"] !== "")): ?>
+                            <p><?php echo htmlspecialchars($item["ligne5"]); ?></p>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
