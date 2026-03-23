@@ -220,10 +220,10 @@ CREATE TABLE Entretient (
 );
 
 CREATE TABLE Participe (
-    id_prestation INT,
+    id_prestataire INT,
     id_reparation INT,
-    CONSTRAINT pk_participe PRIMARY KEY (id_prestation, id_reparation),
-    CONSTRAINT fk_participe_id_prestation FOREIGN KEY (id_prestation) REFERENCES Prestations(id_prestation),
+    CONSTRAINT pk_participe PRIMARY KEY (id_prestataire, id_reparation),
+    CONSTRAINT fk_participe_id_prestataire FOREIGN KEY (id_prestataire) REFERENCES Prestataire(id_prestataire),
     CONSTRAINT fk_participe_id_reparation FOREIGN KEY (id_reparation) REFERENCES Reparation(id_reparation)
 );
 
@@ -316,6 +316,9 @@ ALTER TABLE Repas
 ADD CONSTRAINT fk_id_personnel_repas
 FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
 
+/*===================================*/
+/* Création des vues pour alléger le poids des requêtes sur le site
+/*===================================*/
 CREATE VIEW Vue_Personnel AS
 SELECT 
     P.id_personnel,
@@ -328,6 +331,7 @@ SELECT
     C.id_contrat,
     C.salaire,
     C.date_debut,
+    C.date_fin,
     F.id_fonction,
     F.fonction,
     Z.libelle_zone

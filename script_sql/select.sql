@@ -1,7 +1,7 @@
 -- Tracer l’historique des fonctions, avec la date de début et de fin, 
 -- de l’employé ayant comme nom John, par ordre chronologique
 
-SELECT fonction, TO_CHAR(date_debut, 'DD/MM/YYYY'), TO_CHAR(date_fin, 'DD/MM/YYYY')
+SELECT fonction, TO_CHAR(date_debut, 'DD/MM/YYYY') as date_debut, TO_CHAR(date_fin, 'DD/MM/YYYY') as date_fin
 FROM Personnel p, Contrat c, Fonction f 
 WHERE p.id_personnel = c.id_personnel AND c.id_fonction = f.id_fonction AND nom_personnel='Sorton'
 ORDER BY date_debut;
@@ -80,7 +80,6 @@ HAVING COUNT(DISTINCT RFID) > 3;
 -- Quels sont les animaux (nom) qui ont reçu des soins 
 -- ET qui ont consommé au moins un repas ?
 
-
 SELECT DISTINCT a.nom_animal
 FROM Animal a
 WHERE a.RFID IN (
@@ -90,3 +89,17 @@ WHERE a.RFID IN (
     SELECT c.RFID
     FROM Consomme c
 );
+
+-- Crée une vue BILAN-ANIMAL qui, pour chaque animal, affiche son nom, le nombre de soins reçus et la date du dernier soin
+DROP VIEW IF EXISTS BILAN_ANIMAL;
+CREATE VIEW BILAN_ANIMAL AS 
+SELECT a.nom_animal, COUNT(s.id_soin) as nb_soin, MAX(s.date_soin) as dernier_soin
+FROM Animal a, Soins s 
+WHERE a.RFID = s.RFID
+GROUP BY a.nom_animal;
+
+-- A partir de cette vue, afficher uniquement les animaux ayant reçu plus de 3 soins, triés par date de dernier soin décroissante
+SELECT nom_animal, nb_soin, dernier_soin
+FROM BILAN_ANIMAL
+WHERE nb_soin > 3
+ORDER BY dernier_soin DESC;
