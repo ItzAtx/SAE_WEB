@@ -1,6 +1,5 @@
 -- Tracer l’historique des fonctions, avec la date de début et de fin, 
--- de l’employé ayant comme nom John, par ordre chronologique
-
+-- de l’employé ayant comme nom Sorton, par ordre chronologique
 SELECT fonction, TO_CHAR(date_debut, 'DD/MM/YYYY') as date_debut, TO_CHAR(date_fin, 'DD/MM/YYYY') as date_fin
 FROM Personnel p, Contrat c, Fonction f 
 WHERE p.id_personnel = c.id_personnel AND c.id_fonction = f.id_fonction AND nom_personnel='Sorton'
@@ -115,4 +114,8 @@ FROM PARRAINER pa
 RIGHT JOIN PRESTATIONS p ON pa.id_prestation = p.id_prestation
 ORDER BY p.id_prestation;
 
-SELECT * FROM PARRAINER;
+-- Afficher, sous forme de couple, les animaux dans le même enclos ainsi que l'enclos en question.
+SELECT a1.RFID AS animal1, a2.RFID AS animal2, a1.id_enclos
+FROM Animal a1, Animal a2
+WHERE a1.id_enclos = a2.id_enclos 
+  AND a1.RFID < a2.RFID;
