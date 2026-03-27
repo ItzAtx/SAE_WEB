@@ -247,6 +247,7 @@ INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1001, 1, 3);
 INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1001, 2, 4);
 INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1012, 3, 8);
 INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1003, 4, 9);
+INSERT INTO Parrainer (RFID, id_visiteur, id_prestation) VALUES (1004, 1, 4);
 
 /*Boutique (1 boutique en zone 2, geree par la Directrice de magasin)*/
 INSERT INTO Boutique (id_boutique, nom_boutique, type_boutique, id_personnel, id_zone) VALUES (1, 'La Savane Shop', 'Souvenirs', 5, 2);
@@ -274,7 +275,8 @@ INSERT INTO Prestataire (id_prestataire, adresse_societe, nom_societe, telephone
 INSERT INTO Prestataire (id_prestataire, adresse_societe, nom_societe, telephone_societe) VALUES (4, '44 rue des Cerisiers Lille', 'SecureFence', 0655443322);
 
 -- Reparations dans 2 enclos differents
-INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (1, 'Cloture',   'Remplacement des panneaux de cloture abimes',  1);
+INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (1, 'Cloture', 'Remplacement des panneaux de cloture abimes',  1);
+INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (6, 'Peinture', 'Mise en peinture de l''enclos sud', 1);
 INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (2, 'Plomberie', 'Reparation du systeme d''arrosage automatique', 2);
 INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (3, 'Nettoyage', 'Nettoyage complet et desinfection de l''enclos 4', 4);
 INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (4, 'Securite', 'Renforcement des barrieres de l''enclos 5', 5);
@@ -293,6 +295,7 @@ INSERT INTO Entretient (id_personnel, id_reparation) VALUES (2, 2);
 INSERT INTO Entretient (id_personnel, id_reparation) VALUES (2, 3);
 INSERT INTO Entretient (id_personnel, id_reparation) VALUES (2, 4);
 INSERT INTO Entretient (id_personnel, id_reparation) VALUES (2, 5);
+INSERT INTO Entretient (id_personnel, id_reparation) VALUES (2, 6);
 
 /* 1 = directeur du zoo */
 INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par) VALUES (3, 8);

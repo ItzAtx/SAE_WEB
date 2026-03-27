@@ -103,3 +103,16 @@ SELECT nom_animal, nb_soin, dernier_soin
 FROM BILAN_ANIMAL
 WHERE nb_soin > 3
 ORDER BY dernier_soin DESC;
+
+-- Afficher le nom des enclos, leur surface et les réparations associés si elles existent
+SELECT e.id_enclos, e.surface, r.id_reparation, r.nature_reparation
+FROM ENCLOS e
+LEFT JOIN REPARATION r ON e.id_enclos = r.id_enclos;
+
+-- Afficher les prestations et les id des visiteurs qui sont associés à cette prestation
+SELECT p.id_prestation, p.libelle_prestation, pa.id_visiteur
+FROM PARRAINER pa
+RIGHT JOIN PRESTATIONS p ON pa.id_prestation = p.id_prestation
+ORDER BY p.id_prestation;
+
+SELECT * FROM PARRAINER;
