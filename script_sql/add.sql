@@ -5,6 +5,7 @@ INSERT INTO Fonction (id_fonction, fonction) VALUES (3, 'Soigneur');
 INSERT INTO Fonction (id_fonction, fonction) VALUES (4, 'Employe de magasin');
 INSERT INTO Fonction (id_fonction, fonction) VALUES (5, 'Directeur de magasin');
 INSERT INTO Fonction (id_fonction, fonction) VALUES (6, 'Comptable');
+INSERT INTO Fonction (id_fonction, fonction) VALUES (7, 'Vétérinaire');
 
 /*Personnel (sans zone dans un premier temps, contrainte circulaire Zone_zoo <-> Personnel)*/
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel) VALUES (1, 'Belabbas',   'Selma',   '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'selma.belabbas', NULL, 'N');
@@ -35,7 +36,7 @@ UPDATE Personnel SET id_zone = 4 WHERE id_personnel IN (10);
 /*Contrats (1 par personnel)*/
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (1, 4500.00, DATE '2022-01-01', NULL, 1, 1);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (2, 2800.00, DATE '2023-03-15', NULL, 2, 2);
-INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (3, 2600.00, DATE '2023-06-01', NULL, 3, 3);
+INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (3, 2600.00, DATE '2023-06-01', NULL, 7, 3);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (4, 4444.00, DATE '2024-04-04', NULL, 4, 4);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (5, 3200.00, DATE '2023-09-01', NULL, 5, 5);
 INSERT INTO Contrat (id_contrat, salaire, date_debut, date_fin, id_fonction, id_personnel) VALUES (6, 3400.00, DATE '2023-08-01', NULL, 3, 6);
@@ -172,10 +173,10 @@ INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (1
 INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (17, DATE '2025-03-08', 'Complexe', 3, 1011);
 INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (18, DATE '2025-03-09', 'Simple', 3, 1012);
 INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (19, DATE '2025-03-02', 'Simple', 6, 1001);
-INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (20, DATE '2025-03-02', 'Complexe', 6, 1005);
-INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (21, DATE '2025-03-03', 'Complexe', 6, 1005);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (20, DATE '2025-03-02', 'Complexe', 3, 1005);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (21, DATE '2025-03-03', 'Complexe', 3, 1005);
 INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (22, DATE '2025-03-04', 'Simple', 6, 1005);
-INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (23, DATE '2025-03-05', 'Complexe', 7, 1001);
+INSERT INTO Soins (id_soin, date_soin, complexite, id_personnel, RFID) VALUES (23, DATE '2025-03-05', 'Complexe', 3, 1001);
 
 /*Nourriture (2 types partages par tous les animaux)*/
 INSERT INTO Nourriture (id_nourriture, nom_nourriture) VALUES (1, 'Viande fraiche');
@@ -282,9 +283,9 @@ INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id
 -- Chaque prestation est liee a une reparation differente
 INSERT INTO Participe (id_prestataire, id_reparation) VALUES (1, 1);
 INSERT INTO Participe (id_prestataire, id_reparation) VALUES (2, 2);
-INSERT INTO Participe (id_prestataire, id_reparation)VALUES (1, 3);
-INSERT INTO Participe (id_prestataire, id_reparation)VALUES (1, 4);
-INSERT INTO Participe (id_prestataire, id_reparation)VALUES (2, 5);
+INSERT INTO Participe (id_prestataire, id_reparation) VALUES (1, 3);
+INSERT INTO Participe (id_prestataire, id_reparation) VALUES (1, 4);
+INSERT INTO Participe (id_prestataire, id_reparation) VALUES (2, 5);
 
 -- Le technicien (id=2) supervise les 2 reparations
 INSERT INTO Entretient (id_personnel, id_reparation) VALUES (2, 1);
