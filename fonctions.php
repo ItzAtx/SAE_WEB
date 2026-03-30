@@ -194,6 +194,19 @@
         deleteWhere($conn, 'Animal', 'RFID', $rfid);
     }
 
+    function btnArchiver($hiddenName, $hiddenValue) {
+        /*Entrée :
+        -Nom du champs caché
+        -Valeur de l'ID à archiver
+
+        Génère le formulaire HTML du bouton Archiver pour une ligne de tableau*/
+        echo '<form method="post">';
+        hiddenTables();
+        echo '<input type="hidden" name="'.$hiddenName.'" value="'.htmlspecialchars($hiddenValue).'">';
+        echo '<input type="submit" value="Archiver">';
+        echo '</form>';
+    }
+
     function btnSupprimer($hiddenName, $hiddenValue) {
         /*Entrée :
         -Nom du champs caché
@@ -253,17 +266,19 @@
         echo '</select>';
     }
 
-    function selectFonction($name, $selected = '') {
+    function selectFonction($conn, $name, $selected = '') {
         /*Entrée :
         -Attribut name du <select>
         -Valeur à présélectionner
 
         Génère un <select> avec les fonctions*/
-        $fonctions = ['Directeur','Technicien','Soigneur','Employe de magasin','Directeur de magasin'];
-        echo '<select name="'.$name.'">';
-        foreach ($fonctions as $f) {
+        $req = oci_parse($conn, "SELECT fonction FROM Fonction ORDER BY fonction");
+        oci_execute($req);
+        echo '<select name="' . $name . '">';
+        while ($row = oci_fetch_assoc($req)) {
+            $f = $row['FONCTION'];
             $sel = ($f === $selected) ? ' selected' : '';
-            echo '<option value="'.$f.'"'.$sel.'>'.$f.'</option>';
+            echo '<option value="' . htmlspecialchars($f) . '"' . $sel . '>' . htmlspecialchars($f) . '</option>';
         }
         echo '</select>';
     }

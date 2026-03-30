@@ -580,7 +580,7 @@
                         <td><?php echo htmlspecialchars($row['ID_CONTRAT']); ?></td>
                         <td><input type="text" name="edit_salaire"    value="<?php echo htmlspecialchars($row['SALAIRE']); ?>"></td>
                         <td><input type="date" name="edit_date_debut" value="<?php echo htmlspecialchars($row['DATE_DEBUT']); ?>"></td>
-                        <td><?php selectFonction('edit_fonction', $row['FONCTION']); ?></td>
+                        <td><?php selectFonction($conn, 'edit_fonction', $row['FONCTION']); ?></td>
                         <td><i>(inchangé)</i></td>
                         <td>
                             <input type="submit" name="modifier_personnel" value="Valider">
@@ -603,7 +603,7 @@
                     <td>************</td>
                     <td>
                         <?php btnModifier('edit_personnel', $row['ID_PERSONNEL']); ?>
-                        <?php btnSupprimer('supprimer_id_personnel', $row['ID_PERSONNEL']); ?>
+                        <?php btnArchiver('supprimer_id_personnel', $row['ID_PERSONNEL']); ?>
                     </td>
                 </tr>
             <?php endif; ?>
@@ -621,7 +621,7 @@
                 <td><input type="text" name="id_contrat" value="<?php echo $nextIdContrat; ?>" readonly></td>
                 <td><input type="text" name="salaire"></td>
                 <td><input type="date" name="date_debut"></td>
-                <td><?php selectFonction('fonction'); ?></td>
+                <td><?php selectFonction($conn, 'fonction'); ?></td>
                 <td><input type="text" name="mot_de_passe"></td>
                 <td><input type="submit" name="ajouter_personnel" value="Ajouter"></td>
             </form>

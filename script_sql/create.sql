@@ -317,7 +317,7 @@ ADD CONSTRAINT fk_id_personnel_repas
 FOREIGN KEY (id_personnel) REFERENCES Personnel(id_personnel);
 
 /*===================================*/
-/* Création des vues pour alléger le poids des requêtes sur le site
+/* Création des vues pour alléger le poids des requêtes sur le site*/
 /*===================================*/
 CREATE VIEW Vue_Personnel AS
 SELECT 
