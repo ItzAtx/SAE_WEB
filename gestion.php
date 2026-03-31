@@ -30,6 +30,7 @@
                 AND archiver_personnel = 'N'",
                 []
             );
+            
             if ($rowCount['NB'] <= 1) {
                 $message = "Impossible d'archiver : ce personnel est le seul directeur.";
             } else {
@@ -127,20 +128,24 @@
                     oci_commit($conn);
                     redirectSelf();
                 }
-
             } else {
-                //Soigneur simple — archivage direct
+                //Soigneur simple, archivage direct
                 deleteWhere($conn, 'Attitre', 'id_personnel', $id);
                 execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :id", [':id' => $id]);
                 execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
                 oci_commit($conn);
                 redirectSelf();
             }
-
+        } elseif ($fonction === "Technicien") {
+            //Technicien, on supprime les travaux qu'il supervisait
+            deleteWhere($conn, 'Entretient', 'id_personnel', $id);
+            execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+            oci_commit($conn);
+            redirectSelf();
         } else {
             //Autres fonctions — archivage simple
-            execQuery($conn, "UPDATE Boutique  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
-            execQuery($conn, "UPDATE Zone_zoo  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
+            execQuery($conn, "UPDATE Boutique SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
+            execQuery($conn, "UPDATE Zone_zoo SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
             execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
             oci_commit($conn);
             redirectSelf();
@@ -169,8 +174,8 @@
             );
             //Ajout des données dans Contrat
             execQuery($conn,
-                "INSERT INTO Contrat VALUES (:id_contrat, :salaire, TO_DATE(:date_debut,'YYYY-MM-DD'), NULL, :id_fonction, :id_personnel)",
-                [":id_contrat" => $_POST['id_contrat'],":salaire" => $_POST['salaire'], ":date_debut" => $_POST['date_debut'],":id_fonction" => $rowFonction['ID_FONCTION'], ":id_personnel" => $_POST['id_personnel']]
+                "INSERT INTO Contrat VALUES (:id_contrat, :salaire, TO_DATE(:date_debut,'YYYY-MM-DD'), TO_DATE(:date_fin,'YYYY-MM-DD'), :id_fonction, :id_personnel)",
+                [":id_contrat" => $_POST['id_contrat'],":salaire" => $_POST['salaire'], ":date_debut" => $_POST['date_debut'], ":date_fin" => $_POST['date_fin'] ?: null, ":id_fonction" => $rowFonction['ID_FONCTION'], ":id_personnel" => $_POST['id_personnel']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -199,9 +204,9 @@
             );
             //Modification des données dans Contrat
             execQuery($conn,
-                "UPDATE Contrat SET salaire = :salaire, date_debut = TO_DATE(:date_debut,'YYYY-MM-DD'), id_fonction = :id_fonction
+                "UPDATE Contrat SET salaire = :salaire, date_debut = TO_DATE(:date_debut,'YYYY-MM-DD'), date_fin = TO_DATE(:date_fin,'YYYY-MM-DD'), id_fonction = :id_fonction
                 WHERE id_personnel = :id_personnel",
-                [":salaire" => $_POST['edit_salaire'],":date_debut" => $_POST['edit_date_debut'], ":id_fonction" => $rowFonction['ID_FONCTION'],":id_personnel" => $_POST['edit_id_personnel']]
+                [":salaire" => $_POST['edit_salaire'], ":date_debut" => $_POST['edit_date_debut'], ":date_fin" => $_POST['edit_date_fin'] ?: null, ":id_fonction" => $rowFonction['ID_FONCTION'],":id_personnel" => $_POST['edit_id_personnel']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -470,7 +475,7 @@
 
     //Affiche les données de Personnel
     $requetePersonnel = execQuery($conn,
-        "SELECT id_personnel, prenom_personnel, nom_personnel, id_connexion, libelle_zone, id_contrat, salaire, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut, fonction
+        "SELECT id_personnel, prenom_personnel, nom_personnel, id_connexion, libelle_zone, id_contrat, salaire, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut, TO_CHAR(date_fin,'YYYY-MM-DD') AS date_fin, fonction
         FROM Vue_Personnel
         WHERE archiver_personnel = 'N'
         ORDER BY id_personnel",
@@ -516,6 +521,8 @@
     $nextIdBoutique = fetchOne($conn, "SELECT NVL(MAX(id_boutique), 0) + 1 AS next_id FROM Boutique")['NEXT_ID'];
     $nextRfid  = fetchOne($conn, "SELECT NVL(MAX(RFID), 1000) + 1 AS next_id FROM Animal")['NEXT_ID'];
 
+    $confirmerArchivage = $_GET['confirmer_archivage'] ?? null;
+
     //ID en cours d'édition
     $editPersonnel = $_GET['edit_personnel'] ?? null;
     $editEnclos = $_GET['edit_enclos'] ?? null;
@@ -548,8 +555,38 @@
 ?>
 
 <!-- ===================== PERSONNEL ===================== -->
- <?php if ($tablePersonnel): ?>
+<?php if ($tablePersonnel): ?>
     <h2>Gestion du personnel</h2>
+
+    <!-- FORMULAIRE D'ARCHIVAGE : en dehors du tableau -->
+    <?php if ($confirmerArchivage): ?>
+        <?php
+        $rowAArchiver = fetchOne($conn,
+            "SELECT prenom_personnel, nom_personnel, TO_CHAR(date_fin,'YYYY-MM-DD') AS date_fin
+            FROM Vue_Personnel
+            WHERE id_personnel = :id",
+            [':id' => $confirmerArchivage]
+        );
+        ?>
+        <p>
+            Vous allez archiver <strong><?php echo htmlspecialchars($rowAArchiver['PRENOM_PERSONNEL'].' '.$rowAArchiver['NOM_PERSONNEL']) ?></strong>.
+            <?php if ($rowAArchiver['DATE_FIN']): ?>
+                Date de fin actuelle : <?php echo htmlspecialchars($rowAArchiver['DATE_FIN']) ?> — veuillez saisir la nouvelle date de licenciement.
+            <?php else: ?>
+                Veuillez saisir la date de fin de contrat.
+            <?php endif; ?>
+        </p>
+        <form method="post">
+            <?php hiddenTables(); ?>
+            <input type="hidden" name="supprimer_id_personnel" value="<?php echo htmlspecialchars($confirmerArchivage) ?>">
+            <label>Date de fin de contrat :
+                <input type="date" name="date_fin_archivage" required>
+            </label>
+            <input type="submit" value="Confirmer l'archivage">
+            <?php btnAnnuler(); ?>
+        </form>
+    <?php endif; ?>
+
     <table border="1">
         <tr>
             <th>ID_PERSONNEL</th>
@@ -560,13 +597,14 @@
             <th>ID_CONTRAT</th>
             <th>SALAIRE</th>
             <th>DEBUT_CONTRAT</th>
+            <th>FIN_CONTRAT</th>
             <th>FONCTION</th>
             <th>MDP</th>
             <th>ACTION</th>
         </tr>
 
         <?php while ($row = oci_fetch_assoc($requetePersonnel)): ?>
-            <?php if ($editPersonnel == $row['ID_PERSONNEL']): ?> <!-- Si $editPersonnel différent de null (on a appuyé sur modifier) -->
+            <?php if ($editPersonnel == $row['ID_PERSONNEL']): ?>
                 <!-- MODE ÉDITION -->
                 <tr id="edit-<?php echo htmlspecialchars($row['ID_PERSONNEL']); ?>">
                     <form method="post">
@@ -574,12 +612,13 @@
                         <?php hiddenTables(); ?>
                         <td><?php echo htmlspecialchars($row['ID_PERSONNEL']); ?></td>
                         <td><input type="text" name="edit_prenom_personnel" value="<?php echo htmlspecialchars($row['PRENOM_PERSONNEL']); ?>"></td>
-                        <td><input type="text" name="edit_nom_personnel"   value="<?php echo htmlspecialchars($row['NOM_PERSONNEL']); ?>"></td>
-                        <td><input type="text" name="edit_id_connexion"    value="<?php echo htmlspecialchars($row['ID_CONNEXION']); ?>"></td>
+                        <td><input type="text" name="edit_nom_personnel"    value="<?php echo htmlspecialchars($row['NOM_PERSONNEL']); ?>"></td>
+                        <td><input type="text" name="edit_id_connexion"     value="<?php echo htmlspecialchars($row['ID_CONNEXION']); ?>"></td>
                         <td><?php selectZone('edit_zone_personnel', $row['LIBELLE_ZONE']); ?></td>
                         <td><?php echo htmlspecialchars($row['ID_CONTRAT']); ?></td>
                         <td><input type="text" name="edit_salaire"    value="<?php echo htmlspecialchars($row['SALAIRE']); ?>"></td>
                         <td><input type="date" name="edit_date_debut" value="<?php echo htmlspecialchars($row['DATE_DEBUT']); ?>"></td>
+                        <td><input type="date" name="edit_date_fin"   value="<?php echo htmlspecialchars($row['DATE_FIN'] ?? ''); ?>"></td>
                         <td><?php selectFonction($conn, 'edit_fonction', $row['FONCTION']); ?></td>
                         <td><i>(inchangé)</i></td>
                         <td>
@@ -599,11 +638,12 @@
                     <td><?php echo htmlspecialchars($row['ID_CONTRAT']); ?></td>
                     <td><?php echo htmlspecialchars($row['SALAIRE']); ?></td>
                     <td><?php echo htmlspecialchars($row['DATE_DEBUT']); ?></td>
+                    <td><?php echo htmlspecialchars($row['DATE_FIN'] ?? 'En cours'); ?></td>
                     <td><?php echo htmlspecialchars($row['FONCTION']); ?></td>
                     <td>************</td>
                     <td>
                         <?php btnModifier('edit_personnel', $row['ID_PERSONNEL']); ?>
-                        <?php btnArchiver('supprimer_id_personnel', $row['ID_PERSONNEL']); ?>
+                        <?php btnArchiver($row['ID_PERSONNEL']); ?>
                     </td>
                 </tr>
             <?php endif; ?>
@@ -621,6 +661,7 @@
                 <td><input type="text" name="id_contrat" value="<?php echo $nextIdContrat; ?>" readonly></td>
                 <td><input type="text" name="salaire"></td>
                 <td><input type="date" name="date_debut"></td>
+                <td><input type="date" name="date_fin"></td>
                 <td><?php selectFonction($conn, 'fonction'); ?></td>
                 <td><input type="text" name="mot_de_passe"></td>
                 <td><input type="submit" name="ajouter_personnel" value="Ajouter"></td>

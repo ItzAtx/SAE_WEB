@@ -19,7 +19,7 @@ INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_pas
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel) VALUES (9, 'Moreau', 'Théo', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'theo.moreau', NULL, 'N');
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel) VALUES (10, 'Laurent', 'Camille', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'camille.laurent', NULL, 'N');
 INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel) VALUES (11, 'Lucas', 'Delcroix', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'lucas.delcroix', NULL, 'N');
-INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel) VALUES (12, 'Mario', 'Mamamia', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'mario.mamamia', NULL, 'N');
+INSERT INTO Personnel (id_personnel, nom_personnel, prenom_personnel, mot_de_passe, id_connexion, id_zone, archiver_personnel) VALUES (12, 'Bonjour', 'Aurevoir', '$2y$10$PmIuAdjLikc.uuueH0YL6eA0w2z5NV2yY0JZeW9B9xND/4So.WLe6', 'bonjour.aurevoir', NULL, 'N');
 
 /*Zones (5 zones, responsable = Soigneurs id=1)*/
 INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (1, 'Zone Afrique', 3);
@@ -150,8 +150,8 @@ INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Velociraptor mongolie
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Tyrannosaurus rex', 3);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Testudo graeca', 6);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Carcharodon carcharias', 7);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Panthera leo', 1);
-INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Loxodonta africana', 1);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Panthera leo', 7);
+INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Loxodonta africana', 2);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Velociraptor mongoliensis', 2);
 INSERT INTO Specialiser (nom_latin, id_personnel) VALUES ('Tyrannosaurus rex', 2);
 
@@ -300,7 +300,7 @@ INSERT INTO Entretient (id_personnel, id_reparation) VALUES (2, 5);
 INSERT INTO Entretient (id_personnel, id_reparation) VALUES (2, 6);
 
 /* 1 = directeur du zoo */
-INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par) VALUES (3, 8);
-INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par) VALUES (6, 9);
+INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par) VALUES (3, 6);
+INSERT INTO Chef (id_personnel_manager_de, id_personnel_est_manager_par) VALUES (6, 10);
 
 COMMIT;

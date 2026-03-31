@@ -338,7 +338,12 @@ SELECT
 FROM Personnel P, Contrat C, Fonction F, Zone_zoo Z
 WHERE P.id_personnel = C.id_personnel
 AND C.id_fonction = F.id_fonction
-AND P.id_zone = Z.id_zone;
+AND P.id_zone = Z.id_zone
+AND C.date_debut = (
+    SELECT MAX(C2.date_debut)
+    FROM Contrat C2
+    WHERE C2.id_personnel = P.id_personnel
+);
 
 CREATE VIEW Vue_Animal AS
 SELECT 

@@ -194,17 +194,21 @@
         deleteWhere($conn, 'Animal', 'RFID', $rfid);
     }
 
-    function btnArchiver($hiddenName, $hiddenValue) {
+    function btnArchiver($id) {
         /*Entrée :
         -Nom du champs caché
         -Valeur de l'ID à archiver
 
         Génère le formulaire HTML du bouton Archiver pour une ligne de tableau*/
-        echo '<form method="post">';
-        hiddenTables();
-        echo '<input type="hidden" name="'.$hiddenName.'" value="'.htmlspecialchars($hiddenValue).'">';
-        echo '<input type="submit" value="Archiver">';
-        echo '</form>';
+        $params = [];
+        foreach (['tablePersonnel','tableEnclos','tableBoutiques','tableAnimaux','tableEspeces'] as $t) {
+            if (!empty($_GET[$t])) {
+                $params[] = $t.'='.$_GET[$t];
+            }
+        }
+        $params[] = 'confirmer_archivage='.$id;
+        $url = 'gestion.php?'.implode('&', $params);
+        echo '<a href="'.$url.'"><button type="button">Archiver</button></a>';
     }
 
     function btnSupprimer($hiddenName, $hiddenValue) {

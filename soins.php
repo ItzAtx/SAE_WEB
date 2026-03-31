@@ -112,8 +112,8 @@
         $idChef = $row['ID_CHEF'];
         if (!isset($chefs[$idChef])) {
             $chefs[$idChef] = [
-                'nom'    => $row['PRENOM_CHEF'].' '.$row['NOM_CHEF'],
-                'zone'   => $row['LIBELLE_ZONE'],
+                'nom' => $row['PRENOM_CHEF'].' '.$row['NOM_CHEF'],
+                'zone' => $row['LIBELLE_ZONE'],
                 'equipe' => []
             ];
         }
@@ -180,7 +180,7 @@
         $specialites[$id]['especes'][] = [
             'nom_usuel' => $row['NOM_USUEL'],
             'nom_latin' => $row['NOM_LATIN'],
-            'menace'    => $row['MENACE']
+            'menace' => $row['MENACE']
         ];
     }
 

@@ -331,18 +331,21 @@
                     <label><input type="checkbox" name="tableEspeces"   value="1"> Espèces</label>
                     <input type="submit" value="Gérer">
                 </form>
-            <?php elseif ($poste === "Soigneur"): ?>
+            <?php elseif ($poste === "Soigneur" || $poste === "Veterinaire"): ?>
                 <a href="gestion.php?tableAnimaux=1&tableEspeces=1"><button>Gérer</button></a>
-            <?php else: ?>
+            <?php elseif ($poste === "Directeur de magasin") :?>
                 <a href="gestion.php?tableBoutiques=1"><button>Gérer</button></a>
             <?php endif; ?>
 
             <?php
-                if ($poste === "Soigneur" || $poste === "Directeur"){
+                if ($poste === "Soigneur" || $poste === "Veterinaire" || $poste === "Directeur"){
                     echo '<a href="soins.php"><button>Soins</button></a>';
                 }
                 if ($poste === "Comptable" || $poste === "Directeur de magasin" || $poste === "Directeur"){
                     echo '<a href="comptes.php"><button>Comptes</button></a>';
+                }
+                if ($poste === "Directeur"){
+                    echo '<a href="desarchivage.php"><button>Desarchivage</button></a>';
                 }
             ?>
 
