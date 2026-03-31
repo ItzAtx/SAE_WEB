@@ -331,6 +331,10 @@
                     <label><input type="checkbox" name="tableEspeces"   value="1"> Espèces</label>
                     <input type="submit" value="Gérer">
                 </form>
+                <a href="desarchivage.php"><button>Desarchivage</button></a>
+                <a href="parrainage.php"><button>Parrainages</button></a>
+                <a href="soins.php"><button>Soins</button></a>
+                <a href="comptes.php"><button>Comptes</button></a>
             <?php elseif ($poste === "Soigneur" || $poste === "Veterinaire"): ?>
                 <a href="gestion.php?tableAnimaux=1&tableEspeces=1"><button>Gérer</button></a>
             <?php elseif ($poste === "Directeur de magasin") :?>
@@ -338,14 +342,11 @@
             <?php endif; ?>
 
             <?php
-                if ($poste === "Soigneur" || $poste === "Veterinaire" || $poste === "Directeur"){
+                if ($poste === "Soigneur" || $poste === "Veterinaire"){
                     echo '<a href="soins.php"><button>Soins</button></a>';
                 }
-                if ($poste === "Comptable" || $poste === "Directeur de magasin" || $poste === "Directeur"){
+                if ($poste === "Comptable" || $poste === "Directeur de magasin"){
                     echo '<a href="comptes.php"><button>Comptes</button></a>';
-                }
-                if ($poste === "Directeur"){
-                    echo '<a href="desarchivage.php"><button>Desarchivage</button></a>';
                 }
             ?>
 
