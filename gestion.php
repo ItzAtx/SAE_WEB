@@ -160,7 +160,7 @@
                 oci_commit($conn);
                 redirectSelf();
             } else {
-                //Autres fonctions — archivage simple
+                //Autres fonctions, archivage simple
                 execQuery($conn, "UPDATE Boutique SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
                 execQuery($conn, "UPDATE Zone_zoo SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
                 execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
@@ -205,30 +205,127 @@
     MODIFICATION PERSONNEL
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_personnel'])) {
-        $fields = ['edit_id_personnel', 'edit_prenom_personnel', 'edit_nom_personnel', 'edit_id_connexion', 'edit_zone_personnel', 'edit_salaire', 'edit_date_debut', 'edit_fonction']; //Champs POST à vérifier
+        $fields = ['edit_id_personnel', 'edit_prenom_personnel', 'edit_nom_personnel', 'edit_id_connexion', 'edit_zone_personnel', 'edit_salaire', 'edit_date_debut', 'edit_fonction'];
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs pour la modification.";
         } else {
-            $id_zone = getIdZone($conn, $_POST['edit_zone_personnel']);
-            //Modification des données dans Personnel
-            execQuery($conn,
-                "UPDATE Personnel SET prenom_personnel= :prenom, nom_personnel= :nom, id_connexion= :id_connexion, id_zone= :id_zone
-                WHERE id_personnel= :id_personnel",
-                [":prenom" => $_POST['edit_prenom_personnel'], ":nom" => $_POST['edit_nom_personnel'], ":id_connexion" => $_POST['edit_id_connexion'], ":id_zone" => $id_zone, ":id_personnel" => $_POST['edit_id_personnel']]
+            $id = $_POST['edit_id_personnel'];
+            $nouvelleFonction = $_POST['edit_fonction'];
+
+            // Récupération de la fonction actuelle
+            $rowFonctionActuelle = fetchOne($conn,
+                "SELECT fonction FROM Vue_Personnel WHERE id_personnel = :id",
+                [':id' => $id]
             );
-            //On cherche l'id_fonction correspondant à la fonction donnée
-            $rowFonction = fetchOne($conn,
-                "SELECT id_fonction FROM Fonction WHERE fonction = :fonction",
-                [":fonction" => $_POST['edit_fonction']]
-            );
-            //Modification des données dans Contrat
-            execQuery($conn,
-                "UPDATE Contrat SET salaire = :salaire, date_debut = TO_DATE(:date_debut,'YYYY-MM-DD'), date_fin = TO_DATE(:date_fin,'YYYY-MM-DD'), id_fonction = :id_fonction
-                WHERE id_personnel = :id_personnel",
-                [":salaire" => $_POST['edit_salaire'], ":date_debut" => $_POST['edit_date_debut'], ":date_fin" => $_POST['edit_date_fin'] ?: null, ":id_fonction" => $rowFonction['ID_FONCTION'],":id_personnel" => $_POST['edit_id_personnel']]
-            );
-            oci_commit($conn);
-            redirectSelf();
+            $fonctionActuelle = $rowFonctionActuelle ? $rowFonctionActuelle['FONCTION'] : null;
+
+            $peutModifier = true;
+
+            //Vérification si la fonction change
+            if ($fonctionActuelle !== $nouvelleFonction) {
+
+                if ($fonctionActuelle === 'Directeur') {
+                    //On ne peut pas retirer la fonction de directeur s'il est le seul
+                    $rowCount = fetchOne($conn,
+                        "SELECT COUNT(*) AS nb FROM Vue_Personnel
+                        WHERE fonction = 'Directeur' AND archiver_personnel = 'N'",
+                        []
+                    );
+                    if ($rowCount['NB'] <= 1) {
+                        $message = "Impossible de modifier : ce personnel est le seul directeur.";
+                        $peutModifier = false;
+                    }
+
+                } elseif ($fonctionActuelle === 'Directeur de magasin') {
+                    //On ne peut pas retirer la fonction de directeur de magasin s'il est le seul
+                    $rowCount = fetchOne($conn,
+                        "SELECT COUNT(*) AS nb FROM Vue_Personnel
+                        WHERE fonction = 'Directeur de magasin' AND archiver_personnel = 'N'",
+                        []
+                    );
+                    if ($rowCount['NB'] <= 1) {
+                        $message = "Impossible de modifier : ce personnel est le seul directeur de magasin.";
+                        $peutModifier = false;
+                    }
+
+                } elseif ($fonctionActuelle === 'Soigneur') {
+                    //On vérifie s'il est chef de zone
+                    $zoneResponsable = fetchOne($conn,
+                        "SELECT id_zone FROM Vue_Zone WHERE id_personnel = :id",
+                        [':id' => $id]
+                    );
+                    if ($zoneResponsable) {
+                        //S'il est chef, on vérifie qu'il a des équipiers pour le remplacer
+                        $equipiers = fetchAllRows($conn,
+                            "SELECT id_personnel_est_manager_par AS id_equipier
+                            FROM Chef WHERE id_personnel_manager_de = :id
+                            ORDER BY id_personnel_est_manager_par",
+                            [':id' => $id]
+                        );
+                        if (empty($equipiers)) {
+                            $message = "Impossible de modifier : ce chef soigneur n'a pas d'équipier pour le remplacer.";
+                            $peutModifier = false;
+                        } else {
+                            //Le premier équipier devient le nouveau chef de zone
+                            $idRemplacant = $equipiers[0]['ID_EQUIPIER'];
+                            $autresEquipiers = array_slice($equipiers, 1);
+
+                            execQuery($conn, "DELETE FROM Chef WHERE id_personnel_manager_de = :id", [':id' => $id]);
+                            execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :remplacant", [':remplacant' => $idRemplacant]);
+
+                            foreach ($autresEquipiers as $eq) {
+                                execQuery($conn,
+                                    "INSERT INTO Chef VALUES (:remplacant, :equipier)",
+                                    [':remplacant' => $idRemplacant, ':equipier' => $eq['ID_EQUIPIER']]
+                                );
+                            }
+
+                            execQuery($conn,
+                                "UPDATE Zone_zoo SET id_personnel = :remplacant WHERE id_zone = :id_zone",
+                                [':remplacant' => $idRemplacant, ':id_zone' => $zoneResponsable['ID_ZONE']]
+                            );
+                        }
+                    } else {
+                        //Soigneur simple, on retire juste ses liens Chef
+                        execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :id", [':id' => $id]);
+                    }
+
+                    //Dans tous les cas on retire ses animaux attitrés s'il n'est plus soigneur
+                    if ($peutModifier) {
+                        deleteWhere($conn, 'Attitre', 'id_personnel', $id);
+                    }
+                }
+            }
+
+            //Vérification date début/fin contrat
+            if ($peutModifier && !empty($_POST['edit_date_fin']) && $_POST['edit_date_fin'] <= $_POST['edit_date_debut']) {
+                $message = "La date de fin doit être postérieure à la date de début de contrat.";
+                $peutModifier = false;
+            }
+
+            if ($peutModifier) {
+                $id_zone = getIdZone($conn, $_POST['edit_zone_personnel']);
+
+                execQuery($conn,
+                    "UPDATE Personnel SET prenom_personnel = :prenom, nom_personnel = :nom, id_connexion = :id_connexion, id_zone = :id_zone
+                    WHERE id_personnel = :id_personnel",
+                    [":prenom" => $_POST['edit_prenom_personnel'], ":nom" => $_POST['edit_nom_personnel'], ":id_connexion" => $_POST['edit_id_connexion'], ":id_zone" => $id_zone, ":id_personnel" => $id]
+                );
+
+                $rowFonction = fetchOne($conn,
+                    "SELECT id_fonction FROM Fonction WHERE fonction = :fonction",
+                    [":fonction" => $nouvelleFonction]
+                );
+
+                execQuery($conn,
+                    "UPDATE Contrat SET salaire = :salaire, date_debut = TO_DATE(:date_debut,'YYYY-MM-DD'), date_fin = TO_DATE(:date_fin,'YYYY-MM-DD'), id_fonction = :id_fonction
+                    WHERE id_personnel = :id_personnel AND date_fin IS NULL",
+                    [":salaire" => $_POST['edit_salaire'], ":date_debut" => $_POST['edit_date_debut'], ":date_fin" => $_POST['edit_date_fin'] ?: null, ":id_fonction" => $rowFonction['ID_FONCTION'], ":id_personnel" => $id]
+                );
+
+                oci_commit($conn);
+                redirectSelf();
+            }
         }
     }
 
