@@ -6,7 +6,7 @@
     $message = "";
 
     /* =========================
-    SUPPRESSION PERSONNEL
+    ARCHIVAGE PERSONNEL
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_personnel'])) {
         $id = $_POST['supprimer_id_personnel'];
@@ -19,136 +19,155 @@
             [':id' => $id]
         );
 
+        //Vérifier la date de début de contrat du personnel à archiver
+        $rowContrat = fetchOne($conn,
+            "SELECT TO_CHAR(date_debut, 'YYYY-MM-DD') AS date_debut
+            FROM Contrat
+            WHERE id_personnel = :id AND date_fin IS NULL",
+            [':id' => $id]
+        );
+
         $fonction = $rowFonction ? $rowFonction['FONCTION'] : null;
 
-        if ($fonction === 'Directeur') {
-            //On vérifie qu'il n'est pas le seul directeur
-            $rowCount = fetchOne($conn,
-                "SELECT COUNT(*) AS nb 
-                FROM Vue_Personnel
-                WHERE fonction = 'Directeur'
-                AND archiver_personnel = 'N'",
-                []
-            );
-            
-            if ($rowCount['NB'] <= 1) {
-                $message = "Impossible d'archiver : ce personnel est le seul directeur.";
-            } else {
-                execQuery($conn, "UPDATE Zone_zoo  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
-                execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-                oci_commit($conn);
-                redirectSelf();
-            }
+        if ($rowContrat && $_POST['date_fin_archivage'] <= $rowContrat['DATE_DEBUT']) {
+            $message = "La date de fin doit être postérieure à la date de début (".$rowContrat['DATE_DEBUT'].")";
+        } else {
 
-        } elseif ($fonction === 'Directeur de magasin') {
-            //On vérifie qu'il n'est pas le seul directeur de magasin
-            $rowCount = fetchOne($conn,
-                "SELECT COUNT(*) AS nb
-                FROM Vue_Personnel
-                WHERE fonction = 'Directeur de magasin'
-                AND archiver_personnel = 'N'",
-                []
-            );
-            if ($rowCount['NB'] <= 1) {
-                $message = "Impossible d'archiver : ce personnel est le seul directeur de magasin.";
-            } else {
-                //On trouve un nouveau directeur non archivé
-                $autreDir = fetchOne($conn,
-                    "SELECT MIN(id_personnel) AS id_personnel
+            if ($fonction === 'Directeur') {
+                //On vérifie qu'il n'est pas le seul directeur
+                $rowCount = fetchOne($conn,
+                    "SELECT COUNT(*) AS nb 
                     FROM Vue_Personnel
-                    WHERE fonction = 'Directeur de magasin'
-                    AND archiver_personnel = 'N'
-                    AND id_personnel <> :id",
-                    [':id' => $id]
+                    WHERE fonction = 'Directeur'
+                    AND archiver_personnel = 'N'",
+                    []
                 );
-                //On réassigne les boutiques à un autre directeur
-                execQuery($conn, "UPDATE Boutique SET id_personnel = :new_id WHERE id_personnel = :id",
-                    [':new_id' => $autreDir['ID_PERSONNEL'], ':id' => $id]
-                );
-                execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-                oci_commit($conn);
-                redirectSelf();
-            }
-
-        } elseif ($fonction === 'Soigneur') {
-            //On vérifie si ce soigneur est responsable d'une zone (= chef soigneur)
-            $zoneResponsable = fetchOne($conn,
-                "SELECT id_zone FROM Vue_Zone WHERE id_personnel = :id",
-                [':id' => $id]
-            );
-
-            if ($zoneResponsable) {
-                //S'il est chef, on récupère tous ses équipiers
-                $equipiers = fetchAllRows($conn,
-                    "SELECT id_personnel_est_manager_par AS id_equipier
-                    FROM Chef
-                    WHERE id_personnel_manager_de = :id
-                    ORDER BY id_personnel_est_manager_par",
-                    [':id' => $id]
-                );
-
-                if (empty($equipiers)) {
-                    //S'il n'as pas d'équipiers, on bloque l'archivage
-                    $message = "Impossible d'archiver : ce chef soigneur n'a pas d'équipier pour le remplacer.";
+                
+                if ($rowCount['NB'] <= 1) {
+                    $message = "Impossible d'archiver : ce personnel est le seul directeur.";
                 } else {
-                    //Le premier équipier devient le remplaçant
-                    $idRemplacant = $equipiers[0]['ID_EQUIPIER'];
-                    //On supprime la première case du tableau
-                    $autresEquipiers = array_slice($equipiers, 1);
-
-                    //Suppression de tous les liens Chef de l'ancien chef comme manager
-                    execQuery($conn,
-                        "DELETE FROM Chef WHERE id_personnel_manager_de = :id",
-                        [':id' => $id]
-                    );
-
-                    //Suppression du lien où le remplaçant était subordonné
-                    execQuery($conn,
-                        "DELETE FROM Chef WHERE id_personnel_est_manager_par = :remplacant",
-                        [':remplacant' => $idRemplacant]
-                    );
-
-                    //Le remplaçant manage les autres équipiers
-                    foreach ($autresEquipiers as $eq) {
-                        execQuery($conn,
-                            "INSERT INTO Chef VALUES (:remplacant, :equipier)",
-                            [':remplacant' => $idRemplacant, ':equipier' => $eq['ID_EQUIPIER']]
-                        );
-                    }
-
-                    //Le remplaçant devient responsable de la zone
-                    execQuery($conn,
-                        "UPDATE Zone_zoo SET id_personnel = :remplacant WHERE id_zone = :id_zone",
-                        [':remplacant' => $idRemplacant, ':id_zone' => $zoneResponsable['ID_ZONE']]
-                    );
-
-                    //Archivage de l'ancien chef
-                    deleteWhere($conn, 'Attitre', 'id_personnel', $id);
+                    execQuery($conn, "UPDATE Zone_zoo  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
                     execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+                    execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
                     oci_commit($conn);
                     redirectSelf();
                 }
-            } else {
-                //Soigneur simple, archivage direct
-                deleteWhere($conn, 'Attitre', 'id_personnel', $id);
-                execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :id", [':id' => $id]);
+
+            } elseif ($fonction === 'Directeur de magasin') {
+                //On vérifie qu'il n'est pas le seul directeur de magasin
+                $rowCount = fetchOne($conn,
+                    "SELECT COUNT(*) AS nb
+                    FROM Vue_Personnel
+                    WHERE fonction = 'Directeur de magasin'
+                    AND archiver_personnel = 'N'",
+                    []
+                );
+                if ($rowCount['NB'] <= 1) {
+                    $message = "Impossible d'archiver : ce personnel est le seul directeur de magasin.";
+                } else {
+                    //On trouve un nouveau directeur non archivé
+                    $autreDir = fetchOne($conn,
+                        "SELECT MIN(id_personnel) AS id_personnel
+                        FROM Vue_Personnel
+                        WHERE fonction = 'Directeur de magasin'
+                        AND archiver_personnel = 'N'
+                        AND id_personnel <> :id",
+                        [':id' => $id]
+                    );
+                    //On réassigne les boutiques à un autre directeur
+                    execQuery($conn, "UPDATE Boutique SET id_personnel = :new_id WHERE id_personnel = :id",
+                        [':new_id' => $autreDir['ID_PERSONNEL'], ':id' => $id]
+                    );
+                    execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+                    execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
+                    oci_commit($conn);
+                    redirectSelf();
+                }
+
+            } elseif ($fonction === 'Soigneur') {
+                //On vérifie si ce soigneur est responsable d'une zone (= chef soigneur)
+                $zoneResponsable = fetchOne($conn,
+                    "SELECT id_zone FROM Vue_Zone WHERE id_personnel = :id",
+                    [':id' => $id]
+                );
+
+                if ($zoneResponsable) {
+                    //S'il est chef, on récupère tous ses équipiers
+                    $equipiers = fetchAllRows($conn,
+                        "SELECT id_personnel_est_manager_par AS id_equipier
+                        FROM Chef
+                        WHERE id_personnel_manager_de = :id
+                        ORDER BY id_personnel_est_manager_par",
+                        [':id' => $id]
+                    );
+
+                    if (empty($equipiers)) {
+                        //S'il n'as pas d'équipiers, on bloque l'archivage
+                        $message = "Impossible d'archiver : ce chef soigneur n'a pas d'équipier pour le remplacer.";
+                    } else {
+                        //Le premier équipier devient le remplaçant
+                        $idRemplacant = $equipiers[0]['ID_EQUIPIER'];
+                        //On supprime la première case du tableau
+                        $autresEquipiers = array_slice($equipiers, 1);
+
+                        //Suppression de tous les liens Chef de l'ancien chef comme manager
+                        execQuery($conn,
+                            "DELETE FROM Chef WHERE id_personnel_manager_de = :id",
+                            [':id' => $id]
+                        );
+
+                        //Suppression du lien où le remplaçant était subordonné
+                        execQuery($conn,
+                            "DELETE FROM Chef WHERE id_personnel_est_manager_par = :remplacant",
+                            [':remplacant' => $idRemplacant]
+                        );
+
+                        //Le remplaçant manage les autres équipiers
+                        foreach ($autresEquipiers as $eq) {
+                            execQuery($conn,
+                                "INSERT INTO Chef VALUES (:remplacant, :equipier)",
+                                [':remplacant' => $idRemplacant, ':equipier' => $eq['ID_EQUIPIER']]
+                            );
+                        }
+
+                        //Le remplaçant devient responsable de la zone
+                        execQuery($conn,
+                            "UPDATE Zone_zoo SET id_personnel = :remplacant WHERE id_zone = :id_zone",
+                            [':remplacant' => $idRemplacant, ':id_zone' => $zoneResponsable['ID_ZONE']]
+                        );
+
+                        //Archivage de l'ancien chef
+                        deleteWhere($conn, 'Attitre', 'id_personnel', $id);
+                        execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+                        execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
+                        oci_commit($conn);
+                        redirectSelf();
+                    }
+                } else {
+                    //Soigneur simple, archivage direct
+                    deleteWhere($conn, 'Attitre', 'id_personnel', $id);
+                    execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :id", [':id' => $id]);
+                    execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+                    execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
+                    oci_commit($conn);
+                    redirectSelf();
+                }
+            } elseif ($fonction === "Technicien") {
+                //Technicien, on supprime les travaux qu'il supervisait
+                deleteWhere($conn, 'Entretient', 'id_personnel', $id);
                 execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+                execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
+                oci_commit($conn);
+                redirectSelf();
+            } else {
+                //Autres fonctions — archivage simple
+                execQuery($conn, "UPDATE Boutique SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
+                execQuery($conn, "UPDATE Zone_zoo SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
+                execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+                execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
                 oci_commit($conn);
                 redirectSelf();
             }
-        } elseif ($fonction === "Technicien") {
-            //Technicien, on supprime les travaux qu'il supervisait
-            deleteWhere($conn, 'Entretient', 'id_personnel', $id);
-            execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-            oci_commit($conn);
-            redirectSelf();
-        } else {
-            //Autres fonctions — archivage simple
-            execQuery($conn, "UPDATE Boutique SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
-            execQuery($conn, "UPDATE Zone_zoo SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
-            execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-            oci_commit($conn);
-            redirectSelf();
         }
     }
 
@@ -926,3 +945,4 @@
 
 </body>
 </html>
+

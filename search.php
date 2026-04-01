@@ -289,11 +289,11 @@
         )" : "";
 
         $rows = fetchAllRows($conn,
-            "SELECT id_contrat, salaire, TO_CHAR(date_debut, 'DD/MM/YYYY') AS date_debut, TO_CHAR(date_fin, 'DD/MM/YYYY') AS date_fin, prenom_personnel, nom_personnel, fonction
-            FROM Vue_Personnel
-            WHERE 1 = 1
-            $whereSearch
-            ORDER BY id_contrat",
+            "SELECT C.id_contrat, C.salaire, TO_CHAR(C.date_debut, 'DD/MM/YYYY') AS date_debut, TO_CHAR(C.date_fin, 'DD/MM/YYYY') AS date_fin, P.prenom_personnel, P.nom_personnel, F.fonction
+            FROM Contrat C, Personnel P, Fonction F
+            WHERE C.id_personnel = P.id_personnel
+            AND C.id_fonction = F.id_fonction
+            ORDER BY P.id_personnel",
             $aCherche ? [":pattern" => $pattern] : []
         );
 
