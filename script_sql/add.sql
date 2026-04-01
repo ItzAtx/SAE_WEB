@@ -278,11 +278,11 @@ INSERT INTO Prestataire (id_prestataire, adresse_societe, nom_societe, telephone
 
 -- Reparations dans 2 enclos differents
 INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (1, 'Cloture', 'Remplacement des panneaux de cloture abimes',  1);
-INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (6, 'Peinture', 'Mise en peinture de l''enclos sud', 1);
 INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (2, 'Plomberie', 'Reparation du systeme d''arrosage automatique', 2);
 INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (3, 'Nettoyage', 'Nettoyage complet et desinfection de l''enclos 4', 4);
 INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (4, 'Securite', 'Renforcement des barrieres de l''enclos 5', 5);
 INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (5, 'Bassin', 'Verification du systeme de filtration du bassin de l''enclos 7', 7);
+INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos) VALUES (6, 'Peinture', 'Mise en peinture de l''enclos sud', 1);
 
 -- Chaque prestation est liee a une reparation differente
 INSERT INTO Participe (id_prestataire, id_reparation) VALUES (1, 1);

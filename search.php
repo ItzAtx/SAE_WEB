@@ -335,6 +335,7 @@
                 <a href="parrainage.php"><button>Parrainages</button></a>
                 <a href="soins.php"><button>Soins</button></a>
                 <a href="comptes.php"><button>Comptes</button></a>
+                <a href="reparations.php"><button>Reparations</button></a>
             <?php elseif ($poste === "Soigneur" || $poste === "Veterinaire"): ?>
                 <a href="gestion.php?tableAnimaux=1&tableEspeces=1"><button>Gérer</button></a>
             <?php elseif ($poste === "Directeur de magasin") :?>
@@ -346,6 +347,9 @@
                     echo '<a href="soins.php"><button>Soins</button></a>';
                 }
                 if ($poste === "Comptable" || $poste === "Directeur de magasin"){
+                    echo '<a href="comptes.php"><button>Comptes</button></a>';
+                }
+                if ($poste === "Technicien"){
                     echo '<a href="comptes.php"><button>Comptes</button></a>';
                 }
             ?>

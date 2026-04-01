@@ -415,4 +415,26 @@ SELECT
 FROM Zone_zoo Z, Personnel P
 WHERE Z.id_personnel = P.id_personnel;
 
+CREATE VIEW Vue_Reparation AS
+SELECT
+    R.id_reparation,
+    R.nature_reparation,
+    R.libelle_reparation,
+    R.id_enclos,
+    E.id_zone,
+    Z.libelle_zone,
+    P.id_personnel,
+    P.nom_personnel,
+    P.prenom_personnel,
+    PR.id_prestataire,
+    PR.nom_societe,
+    PR.telephone_societe
+FROM Reparation R, Enclos E, Zone_zoo Z, Entretient EN, Personnel P, Participe PA, Prestataire PR
+WHERE R.id_enclos = E.id_enclos
+AND E.id_zone = Z.id_zone
+AND R.id_reparation = EN.id_reparation(+)
+AND EN.id_personnel = P.id_personnel(+)
+AND R.id_reparation = PA.id_reparation(+)
+AND PA.id_prestataire = PR.id_prestataire(+);
+
 COMMIT;

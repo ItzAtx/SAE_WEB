@@ -32,5 +32,6 @@ DROP VIEW Vue_Soin;
 DROP VIEW Vue_Boutique;
 DROP VIEW Vue_Enclos;
 DROP VIEW Vue_Zone;
+DROP VIEW Vue_Reparation;
 
 COMMIT;
