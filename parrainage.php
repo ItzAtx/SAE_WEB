@@ -135,6 +135,7 @@ $nextIdV = getNextId($conn, "Visiteurs", "id_visiteur");
 <head>
     <meta charset="UTF-8">
     <title>Visiteurs et parrainages</title>
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 

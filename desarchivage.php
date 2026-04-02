@@ -84,6 +84,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Archives du personnel</title>
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 

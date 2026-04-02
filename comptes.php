@@ -123,6 +123,7 @@
     <head>
         <meta charset="UTF-8">
         <title>Chiffres d'affaires</title>
+        <link rel="stylesheet" href="css/main.css">
     </head>
     <body>
 

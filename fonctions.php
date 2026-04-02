@@ -241,7 +241,7 @@
         $params[] = $param.'='.$value; //Ajout de l'identification de la ligne modifiée, exemple : edit_boutique=2 => modification de la ligne 2 dans Boutique
 
         $url = 'gestion.php?'.implode('&', $params);
-        echo '<a href="'.$url.'"><button type="button">Modifier</button></a>';
+        echo '<a href="'.$url.'"><button type="button" class="btn-edit">Modifier</button></a>';
     }
 
     function btnAnnuler() {
