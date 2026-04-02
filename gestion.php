@@ -32,141 +32,13 @@
         if ($rowContrat && $_POST['date_fin_archivage'] <= $rowContrat['DATE_DEBUT']) {
             $message = "La date de fin doit être postérieure à la date de début (".$rowContrat['DATE_DEBUT'].")";
         } else {
+            $dateFin = $_POST['date_fin_archivage'];
 
-            if ($fonction === 'Directeur') {
-                //On vérifie qu'il n'est pas le seul directeur
-                $rowCount = fetchOne($conn,
-                    "SELECT COUNT(*) AS nb 
-                    FROM Vue_Personnel
-                    WHERE fonction = 'Directeur'
-                    AND archiver_personnel = 'N'",
-                    []
-                );
-                
-                if ($rowCount['NB'] <= 1) {
-                    $message = "Impossible d'archiver : ce personnel est le seul directeur.";
-                } else {
-                    execQuery($conn, "UPDATE Zone_zoo  SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
-                    execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-                    execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
-                    oci_commit($conn);
-                    redirectSelf();
-                }
-
-            } elseif ($fonction === 'Directeur de magasin') {
-                //On vérifie qu'il n'est pas le seul directeur de magasin
-                $rowCount = fetchOne($conn,
-                    "SELECT COUNT(*) AS nb
-                    FROM Vue_Personnel
-                    WHERE fonction = 'Directeur de magasin'
-                    AND archiver_personnel = 'N'",
-                    []
-                );
-                if ($rowCount['NB'] <= 1) {
-                    $message = "Impossible d'archiver : ce personnel est le seul directeur de magasin.";
-                } else {
-                    //On trouve un nouveau directeur non archivé
-                    $autreDir = fetchOne($conn,
-                        "SELECT MIN(id_personnel) AS id_personnel
-                        FROM Vue_Personnel
-                        WHERE fonction = 'Directeur de magasin'
-                        AND archiver_personnel = 'N'
-                        AND id_personnel <> :id",
-                        [':id' => $id]
-                    );
-                    //On réassigne les boutiques à un autre directeur
-                    execQuery($conn, "UPDATE Boutique SET id_personnel = :new_id WHERE id_personnel = :id",
-                        [':new_id' => $autreDir['ID_PERSONNEL'], ':id' => $id]
-                    );
-                    execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-                    execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
-                    oci_commit($conn);
-                    redirectSelf();
-                }
-
-            } elseif ($fonction === 'Soigneur') {
-                //On vérifie si ce soigneur est responsable d'une zone (= chef soigneur)
-                $zoneResponsable = fetchOne($conn,
-                    "SELECT id_zone FROM Vue_Zone WHERE id_personnel = :id",
-                    [':id' => $id]
-                );
-
-                if ($zoneResponsable) {
-                    //S'il est chef, on récupère tous ses équipiers
-                    $equipiers = fetchAllRows($conn,
-                        "SELECT id_personnel_est_manager_par AS id_equipier
-                        FROM Chef
-                        WHERE id_personnel_manager_de = :id
-                        ORDER BY id_personnel_est_manager_par",
-                        [':id' => $id]
-                    );
-
-                    if (empty($equipiers)) {
-                        //S'il n'as pas d'équipiers, on bloque l'archivage
-                        $message = "Impossible d'archiver : ce chef soigneur n'a pas d'équipier pour le remplacer.";
-                    } else {
-                        //Le premier équipier devient le remplaçant
-                        $idRemplacant = $equipiers[0]['ID_EQUIPIER'];
-                        //On supprime la première case du tableau
-                        $autresEquipiers = array_slice($equipiers, 1);
-
-                        //Suppression de tous les liens Chef de l'ancien chef comme manager
-                        execQuery($conn,
-                            "DELETE FROM Chef WHERE id_personnel_manager_de = :id",
-                            [':id' => $id]
-                        );
-
-                        //Suppression du lien où le remplaçant était subordonné
-                        execQuery($conn,
-                            "DELETE FROM Chef WHERE id_personnel_est_manager_par = :remplacant",
-                            [':remplacant' => $idRemplacant]
-                        );
-
-                        //Le remplaçant manage les autres équipiers
-                        foreach ($autresEquipiers as $eq) {
-                            execQuery($conn,
-                                "INSERT INTO Chef VALUES (:remplacant, :equipier)",
-                                [':remplacant' => $idRemplacant, ':equipier' => $eq['ID_EQUIPIER']]
-                            );
-                        }
-
-                        //Le remplaçant devient responsable de la zone
-                        execQuery($conn,
-                            "UPDATE Zone_zoo SET id_personnel = :remplacant WHERE id_zone = :id_zone",
-                            [':remplacant' => $idRemplacant, ':id_zone' => $zoneResponsable['ID_ZONE']]
-                        );
-
-                        //Archivage de l'ancien chef
-                        deleteWhere($conn, 'Attitre', 'id_personnel', $id);
-                        execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-                        execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
-                        oci_commit($conn);
-                        redirectSelf();
-                    }
-                } else {
-                    //Soigneur simple, archivage direct
-                    deleteWhere($conn, 'Attitre', 'id_personnel', $id);
-                    execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :id", [':id' => $id]);
-                    execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-                    execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
-                    oci_commit($conn);
-                    redirectSelf();
-                }
-            } elseif ($fonction === "Technicien") {
-                //Technicien, on supprime les travaux qu'il supervisait
-                deleteWhere($conn, 'Entretient', 'id_personnel', $id);
-                execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-                execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
-                oci_commit($conn);
-                redirectSelf();
+            $resultat = gererDepartFonction($conn, $id, $fonction);
+            if ($resultat !== true) {
+                $message = $resultat;
             } else {
-                //Autres fonctions, archivage simple
-                execQuery($conn, "UPDATE Boutique SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
-                execQuery($conn, "UPDATE Zone_zoo SET id_personnel = NULL WHERE id_personnel = :id", [':id' => $id]);
-                execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
-                execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL",[':date_fin' => $_POST['date_fin_archivage'], ':id' => $id]);
-                oci_commit($conn);
-                redirectSelf();
+                archiverPersonnel($conn, $id, $dateFin);
             }
         }
     }
@@ -193,8 +65,8 @@
             );
             //Ajout des données dans Contrat
             execQuery($conn,
-                "INSERT INTO Contrat VALUES (:id_contrat, :salaire, TO_DATE(:date_debut,'YYYY-MM-DD'), TO_DATE(:date_fin,'YYYY-MM-DD'), :id_fonction, :id_personnel)",
-                [":id_contrat" => $_POST['id_contrat'],":salaire" => $_POST['salaire'], ":date_debut" => $_POST['date_debut'], ":date_fin" => $_POST['date_fin'] ?: null, ":id_fonction" => $rowFonction['ID_FONCTION'], ":id_personnel" => $_POST['id_personnel']]
+                "INSERT INTO Contrat VALUES (:id_contrat, :salaire, TO_DATE(:date_debut,'YYYY-MM-DD'), :id_fonction, :id_personnel)",
+                [":id_contrat" => $_POST['id_contrat'],":salaire" => $_POST['salaire'], ":date_debut" => $_POST['date_debut'], ":id_fonction" => $rowFonction['ID_FONCTION'], ":id_personnel" => $_POST['id_personnel']]
             );
             oci_commit($conn);
             redirectSelf();
@@ -217,90 +89,16 @@
                 "SELECT fonction FROM Vue_Personnel WHERE id_personnel = :id",
                 [':id' => $id]
             );
+            
             $fonctionActuelle = $rowFonctionActuelle ? $rowFonctionActuelle['FONCTION'] : null;
-
             $peutModifier = true;
 
-            //Vérification si la fonction change
             if ($fonctionActuelle !== $nouvelleFonction) {
-
-                if ($fonctionActuelle === 'Directeur') {
-                    //On ne peut pas retirer la fonction de directeur s'il est le seul
-                    $rowCount = fetchOne($conn,
-                        "SELECT COUNT(*) AS nb FROM Vue_Personnel
-                        WHERE fonction = 'Directeur' AND archiver_personnel = 'N'",
-                        []
-                    );
-                    if ($rowCount['NB'] <= 1) {
-                        $message = "Impossible de modifier : ce personnel est le seul directeur.";
-                        $peutModifier = false;
-                    }
-
-                } elseif ($fonctionActuelle === 'Directeur de magasin') {
-                    //On ne peut pas retirer la fonction de directeur de magasin s'il est le seul
-                    $rowCount = fetchOne($conn,
-                        "SELECT COUNT(*) AS nb FROM Vue_Personnel
-                        WHERE fonction = 'Directeur de magasin' AND archiver_personnel = 'N'",
-                        []
-                    );
-                    if ($rowCount['NB'] <= 1) {
-                        $message = "Impossible de modifier : ce personnel est le seul directeur de magasin.";
-                        $peutModifier = false;
-                    }
-
-                } elseif ($fonctionActuelle === 'Soigneur') {
-                    //On vérifie s'il est chef de zone
-                    $zoneResponsable = fetchOne($conn,
-                        "SELECT id_zone FROM Vue_Zone WHERE id_personnel = :id",
-                        [':id' => $id]
-                    );
-                    if ($zoneResponsable) {
-                        //S'il est chef, on vérifie qu'il a des équipiers pour le remplacer
-                        $equipiers = fetchAllRows($conn,
-                            "SELECT id_personnel_est_manager_par AS id_equipier
-                            FROM Chef WHERE id_personnel_manager_de = :id
-                            ORDER BY id_personnel_est_manager_par",
-                            [':id' => $id]
-                        );
-                        if (empty($equipiers)) {
-                            $message = "Impossible de modifier : ce chef soigneur n'a pas d'équipier pour le remplacer.";
-                            $peutModifier = false;
-                        } else {
-                            //Le premier équipier devient le nouveau chef de zone
-                            $idRemplacant = $equipiers[0]['ID_EQUIPIER'];
-                            $autresEquipiers = array_slice($equipiers, 1);
-
-                            execQuery($conn, "DELETE FROM Chef WHERE id_personnel_manager_de = :id", [':id' => $id]);
-                            execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :remplacant", [':remplacant' => $idRemplacant]);
-
-                            foreach ($autresEquipiers as $eq) {
-                                execQuery($conn,
-                                    "INSERT INTO Chef VALUES (:remplacant, :equipier)",
-                                    [':remplacant' => $idRemplacant, ':equipier' => $eq['ID_EQUIPIER']]
-                                );
-                            }
-
-                            execQuery($conn,
-                                "UPDATE Zone_zoo SET id_personnel = :remplacant WHERE id_zone = :id_zone",
-                                [':remplacant' => $idRemplacant, ':id_zone' => $zoneResponsable['ID_ZONE']]
-                            );
-                        }
-                    } else {
-                        //Soigneur simple, on retire juste ses liens Chef
-                        execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :id", [':id' => $id]);
-                    }
-
-                    //Dans tous les cas on retire ses animaux attitrés s'il n'est plus soigneur
-                    if ($peutModifier) {
-                        deleteWhere($conn, 'Attitre', 'id_personnel', $id);
-                    }
+                $resultat = gererDepartFonction($conn, $id, $fonctionActuelle);
+                if ($resultat !== true) {
+                    $message = $resultat;
+                    $peutModifier = false;
                 }
-            }
-
-            //Vérification date début/fin contrat
-            if ($peutModifier && !empty($_POST['edit_date_fin']) && $_POST['edit_date_fin'] <= $_POST['edit_date_debut']) {
-                $message = "La date de fin doit être postérieure à la date de début de contrat.";
-                $peutModifier = false;
             }
 
             if ($peutModifier) {
@@ -318,9 +116,9 @@
                 );
 
                 execQuery($conn,
-                    "UPDATE Contrat SET salaire = :salaire, date_debut = TO_DATE(:date_debut,'YYYY-MM-DD'), date_fin = TO_DATE(:date_fin,'YYYY-MM-DD'), id_fonction = :id_fonction
+                    "UPDATE Contrat SET salaire = :salaire, date_debut = TO_DATE(:date_debut,'YYYY-MM-DD'), id_fonction = :id_fonction
                     WHERE id_personnel = :id_personnel AND date_fin IS NULL",
-                    [":salaire" => $_POST['edit_salaire'], ":date_debut" => $_POST['edit_date_debut'], ":date_fin" => $_POST['edit_date_fin'] ?: null, ":id_fonction" => $rowFonction['ID_FONCTION'], ":id_personnel" => $id]
+                    [":salaire" => $_POST['edit_salaire'], ":date_debut" => $_POST['edit_date_debut'], ":id_fonction" => $rowFonction['ID_FONCTION'], ":id_personnel" => $id]
                 );
 
                 oci_commit($conn);
@@ -591,7 +389,7 @@
 
     //Affiche les données de Personnel
     $requetePersonnel = execQuery($conn,
-        "SELECT id_personnel, prenom_personnel, nom_personnel, id_connexion, libelle_zone, id_contrat, salaire, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut, TO_CHAR(date_fin,'YYYY-MM-DD') AS date_fin, fonction
+        "SELECT id_personnel, prenom_personnel, nom_personnel, id_connexion, libelle_zone, id_contrat, salaire, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut, fonction
         FROM Vue_Personnel
         WHERE archiver_personnel = 'N'
         ORDER BY id_personnel",
@@ -631,11 +429,11 @@
     );
 
     //Calcul des ids
-    $nextIdPersonnel = fetchOne($conn, "SELECT NVL(MAX(id_personnel), 0) + 1 AS next_id FROM Personnel")['NEXT_ID'];
-    $nextIdContrat = fetchOne($conn, "SELECT NVL(MAX(id_contrat), 0) + 1 AS next_id FROM Contrat")['NEXT_ID'];
-    $nextIdEnclos = fetchOne($conn, "SELECT NVL(MAX(id_enclos), 0) + 1 AS next_id FROM Enclos")['NEXT_ID'];
-    $nextIdBoutique = fetchOne($conn, "SELECT NVL(MAX(id_boutique), 0) + 1 AS next_id FROM Boutique")['NEXT_ID'];
-    $nextRfid  = fetchOne($conn, "SELECT NVL(MAX(RFID), 1000) + 1 AS next_id FROM Animal")['NEXT_ID'];
+    $nextIdPersonnel = getNextId($conn, "Personnel", "id_personnel");
+    $nextIdContrat = getNextId($conn, "Contrat", "id_contrat");
+    $nextIdEnclos = getNextId($conn, "Enclos", "id_enclos");
+    $nextIdBoutique = getNextId($conn, "Boutique", "id_boutique");
+    $nextRfid  = getNextId($conn, "Animal", "RFID");
 
     $confirmerArchivage = $_GET['confirmer_archivage'] ?? null;
 
@@ -703,7 +501,7 @@
         </form>
     <?php endif; ?>
 
-    <table border="1">
+    <table>
         <tr>
             <th>ID_PERSONNEL</th>
             <th>PRENOM</th>
@@ -713,7 +511,6 @@
             <th>ID_CONTRAT</th>
             <th>SALAIRE</th>
             <th>DEBUT_CONTRAT</th>
-            <th>FIN_CONTRAT</th>
             <th>FONCTION</th>
             <th>MDP</th>
             <th>ACTION</th>
@@ -732,9 +529,8 @@
                         <td><input type="text" name="edit_id_connexion"     value="<?php echo htmlspecialchars($row['ID_CONNEXION']); ?>"></td>
                         <td><?php selectZone('edit_zone_personnel', $row['LIBELLE_ZONE']); ?></td>
                         <td><?php echo htmlspecialchars($row['ID_CONTRAT']); ?></td>
-                        <td><input type="text" name="edit_salaire"    value="<?php echo htmlspecialchars($row['SALAIRE']); ?>"></td>
+                        <td><input type="number" name="edit_salaire"    value="<?php echo htmlspecialchars($row['SALAIRE']); ?>"></td>
                         <td><input type="date" name="edit_date_debut" value="<?php echo htmlspecialchars($row['DATE_DEBUT']); ?>"></td>
-                        <td><input type="date" name="edit_date_fin"   value="<?php echo htmlspecialchars($row['DATE_FIN'] ?? ''); ?>"></td>
                         <td><?php selectFonction($conn, 'edit_fonction', $row['FONCTION']); ?></td>
                         <td><i>(inchangé)</i></td>
                         <td>
@@ -754,7 +550,6 @@
                     <td><?php echo htmlspecialchars($row['ID_CONTRAT']); ?></td>
                     <td><?php echo htmlspecialchars($row['SALAIRE']); ?></td>
                     <td><?php echo htmlspecialchars($row['DATE_DEBUT']); ?></td>
-                    <td><?php echo htmlspecialchars($row['DATE_FIN'] ?? 'En cours'); ?></td>
                     <td><?php echo htmlspecialchars($row['FONCTION']); ?></td>
                     <td>************</td>
                     <td>
@@ -775,9 +570,8 @@
                 <td><input type="text" name="id_connexion"></td>
                 <td><?php selectZone('zone_personnel'); ?></td>
                 <td><input type="text" name="id_contrat" value="<?php echo $nextIdContrat; ?>" readonly></td>
-                <td><input type="text" name="salaire"></td>
+                <td><input type="number" name="salaire"></td>
                 <td><input type="date" name="date_debut"></td>
-                <td><input type="date" name="date_fin"></td>
                 <td><?php selectFonction($conn, 'fonction'); ?></td>
                 <td><input type="text" name="mot_de_passe"></td>
                 <td><input type="submit" name="ajouter_personnel" value="Ajouter"></td>
@@ -791,7 +585,7 @@
 <!-- ===================== ENCLOS ===================== -->
  <?php if ($tableEnclos): ?>
     <h2>Gestion des enclos</h2>
-    <table border="1">
+    <table>
         <tr>
             <th>ID_ENCLOS</th><th>LATITUDE</th><th>LONGITUDE</th><th>SURFACE</th><th>ZONE</th><th>ACTION</th>
         </tr>
@@ -806,7 +600,7 @@
                         <td><?php echo htmlspecialchars($row['ID_ENCLOS']); ?></td>
                         <td><input type="text" name="edit_latitude"  value="<?php echo htmlspecialchars($row['LATITUDE']); ?>"></td>
                         <td><input type="text" name="edit_longitude" value="<?php echo htmlspecialchars($row['LONGITUDE']); ?>"></td>
-                        <td><input type="text" name="edit_surface"   value="<?php echo htmlspecialchars($row['SURFACE']); ?>"></td>
+                        <td><input type="number" name="edit_surface"   value="<?php echo htmlspecialchars($row['SURFACE']); ?>"></td>
                         <td><?php selectZone('edit_zone_enclos', $row['LIBELLE_ZONE']); ?></td>
                         <td>
                             <input type="submit" name="modifier_enclos" value="Valider">
@@ -837,7 +631,7 @@
                 <td><input type="text" name="id_enclos" value="<?php echo $nextIdEnclos; ?>" readonly></td>
                 <td><input type="text" name="latitude"></td>
                 <td><input type="text" name="longitude"></td>
-                <td><input type="text" name="surface"></td>
+                <td><input type="number" name="surface"></td>
                 <td><?php selectZone('zone_enclos'); ?></td>
                 <td><input type="submit" name="ajouter_enclos" value="Ajouter"></td>
             </form>
@@ -850,7 +644,7 @@
 <!-- ===================== BOUTIQUES ===================== -->
 <?php if ($tableBoutiques): ?>
     <h2>Gestion des boutiques</h2>
-    <table border="1">
+    <table>
         <tr>
             <th>ID_BOUTIQUE</th><th>NOM_BOUTIQUE</th><th>TYPE_BOUTIQUE</th>
             <th>RESPONSABLE</th><th>ZONE</th><th>ACTION</th>
@@ -910,7 +704,7 @@
 <!-- ===================== ANIMAUX ===================== -->
 <?php if ($tableAnimaux): ?>
     <h2>Gestion des animaux</h2>
-    <table border="1">
+    <table>
         <tr>
             <th>RFID</th><th>NOM_ANIMAL</th><th>DATE_NAISSANCE</th>
             <th>POIDS</th><th>ID_ENCLOS</th><th>ESPECE</th><th>ACTION</th>
@@ -973,7 +767,7 @@
 <!-- ===================== ESPECES ===================== -->
 <?php if ($tableEspeces): ?>
     <h2>Gestion des espèces</h2>
-    <table border="1">
+    <table>
         <tr>
             <th>NOM_LATIN</th><th>NOM_USUEL</th><th>MENACÉE</th><th>ACTION</th>
         </tr>
@@ -1042,4 +836,3 @@
 
 </body>
 </html>
-

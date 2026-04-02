@@ -28,8 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!preg_match('/^\d+$/', $telephone)) {
                 $message = "Le numéro de téléphone ne doit contenir que des chiffres, sans espaces.";
             } else {
-                $rowId = fetchOne($conn, "SELECT NVL(MAX(id_visiteur),0)+1 AS next_id FROM Visiteurs");
-                $nextId = $rowId['NEXT_ID'];
+                $nextId = getNextId($conn, "Visiteurs", "id_visiteur");
 
                 execQuery($conn,
                     "INSERT INTO Visiteurs VALUES (:id, :nom, :prenom, :tel)",
@@ -75,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($prestation) {
                 $idP = $prestation['ID_PRESTATION'];
             } else {
-                $idP = fetchOne($conn, "SELECT NVL(MAX(id_prestation),0)+1 AS next_id FROM Prestations");
+                $idP = getNextId($conn, "Prestations", "id_prestation");
 
                 execQuery(
                     $conn,
@@ -129,7 +128,7 @@ $animaux = fetchAllRows($conn,
     ORDER BY A.nom_animal"
 );
 
-$nextIdV = fetchOne($conn, "SELECT NVL(MAX(id_visiteur),0)+1 AS next_id FROM Visiteurs")['NEXT_ID'];
+$nextIdV = getNextId($conn, "Visiteurs", "id_visiteur");
 ?>
 <!DOCTYPE html>
 <html lang="fr">

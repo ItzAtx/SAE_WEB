@@ -34,8 +34,7 @@
                         $message = "Erreur : la date est antérieure au dernier CA.";
                         $erreur = true;
                     } else {
-                        $row = fetchOne($conn, "SELECT NVL(MAX(id_ca),0)+1 AS next_id FROM Chiffre_affaire");
-                        $idCA = $row['NEXT_ID'];
+                        $idCA = getNextId($conn, "Chiffre_affaire", "id_ca");
                         
                         $montant = str_replace('.', ',', $montant);
                         execQuery($conn,

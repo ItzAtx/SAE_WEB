@@ -24,8 +24,7 @@
                 [':id' => $id]
             );
 
-            $rowIdContrat = fetchOne($conn, "SELECT NVL(MAX(id_contrat), 0) + 1 AS next_id FROM Contrat");
-            $nextIdContrat = $rowIdContrat['NEXT_ID'];
+            $nextIdContrat = getNextId($conn, "Contrat", "id_contrat");
 
             //Création du nouveau contrat
             execQuery($conn,

@@ -63,7 +63,8 @@
                         execQuery($conn,
                             "UPDATE Contrat
                              SET date_debut = TO_DATE(:date_debut, 'YYYY-MM-DD')
-                             WHERE id_personnel = :identifiant",
+                             WHERE id_personnel = :identifiant
+                             AND date_fin IS NULL",
                              [":date_debut" => $date, ":identifiant" => $id_session]
                         );
  

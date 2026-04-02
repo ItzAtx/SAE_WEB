@@ -18,8 +18,7 @@
                 $idPerso = $_POST['id_personnel_reparation'];
                 $idPrest = !empty($_POST['id_prestataire_reparation']) ? $_POST['id_prestataire_reparation'] : null;
 
-                $row = fetchOne($conn, "SELECT NVL(MAX(id_reparation),0)+1 AS next_id FROM Reparation");
-                $idR = $row['NEXT_ID'];
+                $idR = getNextId($conn, "Reparation", "id_reparation");
 
                 execQuery($conn,
                     "INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos)
@@ -69,7 +68,7 @@
         "SELECT id_prestataire, nom_societe FROM Prestataire ORDER BY nom_societe"
     );
 
-    $nextIdR = fetchOne($conn, "SELECT NVL(MAX(id_reparation),0)+1 AS next_id FROM Reparation")['NEXT_ID'];
+    $nextIdR = getNextId($conn, "Reparation", "id_reparation");
 ?>
 
 <!DOCTYPE html>

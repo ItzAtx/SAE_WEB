@@ -208,7 +208,7 @@
         }
         $params[] = 'confirmer_archivage='.$id;
         $url = 'gestion.php?'.implode('&', $params);
-        echo '<a href="'.$url.'"><button type="button">Archiver</button></a>';
+        echo '<a href="'.$url.'"><button type="submit" class="btn-archive">Archiver</button></a>';
     }
 
     function btnSupprimer($hiddenName, $hiddenValue) {
@@ -220,7 +220,7 @@
         echo '<form method="post">';
         hiddenTables();
         echo '<input type="hidden" name="'.$hiddenName.'" value="'.htmlspecialchars($hiddenValue).'">';
-        echo '<input type="submit" value="Supprimer">';
+        echo '<button type="submit" class="btn-delete">Supprimer</button>';
         echo '</form>';
     }
 
@@ -327,5 +327,117 @@
             echo '<option value="'.htmlspecialchars($val).'"'.$sel.'>'.htmlspecialchars($val).'</option>';
         }
         echo '</select>';
+    }
+
+    function getNextId($conn, $table, $colonne){
+        $row = fetchOne($conn, "SELECT NVL(MAX($colonne), 0) + 1 AS next_id FROM $table");
+        return $row['NEXT_ID'];
+    }
+
+    function archiverPersonnel($conn, $id, $dateFin) {
+        execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
+        execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL", [':date_fin' => $dateFin, ':id' => $id]);
+        oci_commit($conn);
+        redirectSelf();
+    }
+
+    function remplacerChefSoigneur($conn, $id) {
+        $zoneResponsable = fetchOne($conn, "SELECT id_zone FROM Vue_Zone WHERE id_personnel = :id", [':id' => $id]);
+        
+        if (!$zoneResponsable) {
+            execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :id", [':id' => $id]);
+            return true;
+        }
+
+        $equipiers = fetchAllRows($conn,
+            "SELECT id_personnel_est_manager_par AS id_equipier FROM Chef WHERE id_personnel_manager_de = :id ORDER BY id_personnel_est_manager_par",
+            [':id' => $id]
+        );
+
+        if (empty($equipiers)) return false;
+
+        $idRemplacant = $equipiers[0]['ID_EQUIPIER'];
+        $autresEquipiers = array_slice($equipiers, 1);
+
+        execQuery($conn, "DELETE FROM Chef WHERE id_personnel_manager_de = :id", [':id' => $id]);
+        execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :r", [':r' => $idRemplacant]);
+
+        foreach ($autresEquipiers as $eq) {
+            execQuery($conn, "INSERT INTO Chef VALUES (:r, :e)", [':r' => $idRemplacant, ':e' => $eq['ID_EQUIPIER']]);
+        }
+
+        execQuery($conn, "UPDATE Zone_zoo SET id_personnel = :r WHERE id_zone = :z", [':r' => $idRemplacant, ':z' => $zoneResponsable['ID_ZONE']]);
+        return true;
+    }
+
+    function gererDepartFonction($conn, $id, $fonction) {
+        if ($fonction === 'Directeur') {
+            $rowCount = fetchOne($conn,
+                "SELECT COUNT(*) AS nb
+                FROM Vue_Personnel
+                WHERE fonction = 'Directeur'
+                AND archiver_personnel = 'N'"
+            );
+
+            if ($rowCount['NB'] <= 1) {
+                return "Impossible : ce personnel est le seul directeur.";
+            }
+
+            execQuery($conn,
+                "UPDATE Zone_zoo SET id_personnel = NULL WHERE id_personnel = :id",
+                [':id' => $id]
+            );
+            return true;
+        }
+
+        if ($fonction === 'Directeur de magasin') {
+            $rowCount = fetchOne($conn,
+                "SELECT COUNT(*) AS nb
+                FROM Vue_Personnel
+                WHERE fonction = 'Directeur de magasin'
+                AND archiver_personnel = 'N'"
+            );
+
+            if ($rowCount['NB'] <= 1) {
+                return "Impossible : ce personnel est le seul directeur de magasin.";
+            }
+
+            $autreDir = fetchOne($conn,
+                "SELECT MIN(id_personnel) AS id_personnel
+                FROM Vue_Personnel
+                WHERE fonction = 'Directeur de magasin'
+                AND archiver_personnel = 'N'
+                AND id_personnel <> :id",
+                [':id' => $id]
+            );
+
+            execQuery($conn,
+                "UPDATE Boutique
+                SET id_personnel = :new_id
+                WHERE id_personnel = :id",
+                [':new_id' => $autreDir['ID_PERSONNEL'], ':id' => $id]
+            );
+            return true;
+        }
+
+        if ($fonction === 'Employe de magasin') {
+            deleteWhere($conn, 'Travaille', 'id_personnel', $id);
+            return true;
+        }
+
+        if ($fonction === 'Soigneur') {
+            if (!remplacerChefSoigneur($conn, $id)) {
+                return "Impossible : ce chef soigneur n'a pas d'équipier pour le remplacer.";
+            }
+            deleteWhere($conn, 'Attitre', 'id_personnel', $id);
+            return true;
+        }
+
+        if ($fonction === 'Technicien') {
+            deleteWhere($conn, 'Entretient', 'id_personnel', $id);
+            return true;
+        }
+
+        return true;
     }
 ?>

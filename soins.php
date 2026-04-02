@@ -22,7 +22,7 @@
             if ($_POST['complexite'] === 'Complexe' && $fonction !== 'Veterinaire') {
                 $message = "Erreur : seul un vétérinaire peut réaliser un soin complexe.";
             } else {
-                $nextIdSoin = fetchOne($conn, "SELECT NVL(MAX(id_soin), 0) + 1 AS next_id FROM Soins")['NEXT_ID'];
+                $nextIdSoin = getNextId($conn, "Soins", "id_soin");
                 execQuery($conn,
                     "INSERT INTO Soins VALUES (:id_soin, TO_DATE(:date_soin, 'YYYY-MM-DD'), :complexite, :id_personnel, :rfid)",
                     [':id_soin' => $nextIdSoin, ':date_soin' => $_POST['date_soin'], ':complexite' => $_POST['complexite'], ':id_personnel' => $_POST['id_personnel_soin'], ':rfid' => $_POST['rfid_soin']]
@@ -216,7 +216,7 @@
     /* =========================
     DONNÉES POUR FORMULAIRE SOIN
     ========================= */
-    $nextIdSoin = fetchOne($conn, "SELECT NVL(MAX(id_soin), 0) + 1 AS next_id FROM Soins")['NEXT_ID'];
+    $nextIdSoin = getNextId($conn, "Soins", "id_soin");
 
     $tousAnimaux = fetchAllRows($conn,
         "SELECT RFID, nom_animal, nom_usuel FROM Vue_Animal ORDER BY nom_animal"

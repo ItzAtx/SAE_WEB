@@ -350,7 +350,7 @@
                     echo '<a href="comptes.php"><button>Comptes</button></a>';
                 }
                 if ($poste === "Technicien"){
-                    echo '<a href="comptes.php"><button>Comptes</button></a>';
+                    echo '<a href="reparations.php"><button>Reparations</button></a>';
                 }
             ?>
 
