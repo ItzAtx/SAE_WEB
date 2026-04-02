@@ -54,41 +54,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     //Ajout parrainage
     if (isset($_POST['ajouter_parrainage'])) {
-        $fields = ['rfid_parrainage', 'id_visiteur_parrainage', 'libelle_prestation_parrainage', 'niveau_prestation_parrainage'];
+        $fields = ['rfid_parrainage', 'id_visiteur_parrainage', 'id_prestation_parrainage'];
 
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs du parrainage.";
         } else {
             $rfid = $_POST['rfid_parrainage'];
-            $idV = $_POST['id_visiteur_parrainage'];
-            $libelle = $_POST['libelle_prestation_parrainage'];
-            $niveau = $_POST['niveau_prestation_parrainage'];
-
-            $prestation = fetchOne($conn,
-                "SELECT id_prestation 
-                FROM Prestations 
-                WHERE libelle_prestation = :l AND niveau_contribution = :n",
-                [':l' => $libelle, ':n' => $niveau]
-            );
-
-            if ($prestation) {
-                $idP = $prestation['ID_PRESTATION'];
-            } else {
-                $idP = getNextId($conn, "Prestations", "id_prestation");
-
-                execQuery(
-                    $conn,
-                    "INSERT INTO Prestations VALUES (:id,:lib,:niv)",
-                    [':id' => $idP, ':lib' => $libelle, ':niv' => $niveau
-                    ]
-                );
-            }
+            $idV  = $_POST['id_visiteur_parrainage'];
+            $idP  = $_POST['id_prestation_parrainage'];
 
             $existe = fetchOne($conn,
                 "SELECT *
                 FROM Parrainer 
                 WHERE RFID=:rfid AND id_visiteur=:iv AND id_prestation=:ip",
-                [':rfid' => $rfid, ':iv'=> $idV, ':ip' => $idP]
+                [':rfid' => $rfid, ':iv' => $idV, ':ip' => $idP]
             );
 
             if ($existe) {
@@ -99,18 +78,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "INSERT INTO Parrainer VALUES (:rfid,:iv,:ip)",
                     [':rfid' => $rfid, ':iv' => $idV, ':ip' => $idP]
                 );
+                oci_commit($conn);
                 $message = "Parrainage ajouté avec succès.";
             }
-
-            oci_commit($conn);
         }
+    }
+
+    //Ajout prestation
+    if (isset($_POST['ajouter_prestation'])) {
+        if (!postFieldsFilled(['libelle_prestation', 'niveau_contribution'])) {
+            $message = "Veuillez remplir tous les champs de la prestation.";
+        } else {
+            $libelle = $_POST['libelle_prestation'];
+            $niveau  = $_POST['niveau_contribution'];
+
+            $existe = fetchOne($conn,
+                "SELECT id_prestation FROM Prestations WHERE libelle_prestation=:l AND niveau_contribution=:n",
+                [':l' => $libelle, ':n' => $niveau]
+            );
+
+            if ($existe) {
+                $message = "Cette prestation existe déjà.";
+            } else {
+                $idP = getNextId($conn, "Prestations", "id_prestation");
+                execQuery($conn,
+                    "INSERT INTO Prestations VALUES (:id,:lib,:niv)",
+                    [':id' => $idP, ':lib' => $libelle, ':niv' => $niveau]
+                );
+                oci_commit($conn);
+                $message = "Prestation ajoutée avec succès.";
+            }
+        }
+    }
+
+    //Suppression prestation
+    if (!empty($_POST['supprimer_id_prestation'])) {
+        deleteWhere($conn, 'Parrainer', 'id_prestation', $_POST['supprimer_id_prestation']);
+        deleteWhere($conn, 'Prestations', 'id_prestation', $_POST['supprimer_id_prestation']);
+        oci_commit($conn);
+        $message = "Prestation supprimée avec succès.";
     }
 }
 
 $visiteurs = fetchAllRows(
     $conn,
     "SELECT id_visiteur, nom_visiteur, prenom_visiteur, numero_telephone
-    FROM Visiteurs"
+    FROM Visiteurs
+    ORDER BY id_visiteur"
 );
 
 $parrainages = fetchAllRows($conn,
@@ -128,7 +142,14 @@ $animaux = fetchAllRows($conn,
     ORDER BY A.nom_animal"
 );
 
+$prestations = fetchAllRows($conn,
+    "SELECT id_prestation, libelle_prestation, niveau_contribution
+    FROM Prestations
+    ORDER BY niveau_contribution, libelle_prestation"
+);
+
 $nextIdV = getNextId($conn, "Visiteurs", "id_visiteur");
+$nextIdP = getNextId($conn, "Prestations", "id_prestation");
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -161,7 +182,7 @@ $nextIdV = getNextId($conn, "Visiteurs", "id_visiteur");
         <td><?= htmlspecialchars($r['ID_VISITEUR']) ?></td>
         <td><?= htmlspecialchars($r['PRENOM_VISITEUR']) ?></td>
         <td><?= htmlspecialchars($r['NOM_VISITEUR']) ?></td>
-        <td><?= htmlspecialchars($r['NUMERO_TELEPHONE']) ?></td>
+        <td><?= "0".htmlspecialchars($r['NUMERO_TELEPHONE']) ?></td>
         <td>
             <form method="post" style="display:inline">
                 <input type="hidden" name="supprimer_id_visiteur" value="<?= $r['ID_VISITEUR'] ?>">
@@ -187,6 +208,50 @@ $nextIdV = getNextId($conn, "Visiteurs", "id_visiteur");
                 >
             </td>
             <td><input type="submit" name="ajouter_visiteur" value="Ajouter"></td>
+        </form>
+    </tr>
+</table>
+
+<br><br>
+
+<h2>Prestations disponibles</h2>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Libellé</th>
+        <th>Niveau</th>
+        <th>Action</th>
+    </tr>
+
+    <?php foreach ($prestations as $r): ?>
+    <tr>
+        <td><?= htmlspecialchars($r['ID_PRESTATION']) ?></td>
+        <td><?= htmlspecialchars($r['LIBELLE_PRESTATION']) ?></td>
+        <td><?= htmlspecialchars($r['NIVEAU_CONTRIBUTION']) ?></td>
+        <td>
+            <form method="post" style="display:inline">
+                <input type="hidden" name="supprimer_id_prestation" value="<?= $r['ID_PRESTATION'] ?>">
+                <input type="submit" value="Supprimer">
+            </form>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+
+    <tr>
+        <form method="post">
+            <td><input type="text" value="<?= htmlspecialchars($nextIdP) ?>" readonly></td>
+            <td>
+                <input type="text" name="libelle_prestation" placeholder="Libellé de la prestation" required>
+            </td>
+            <td>
+                <select name="niveau_contribution" required>
+                    <option value="Bronze">Bronze</option>
+                    <option value="Argent">Argent</option>
+                    <option value="Or">Or</option>
+                </select>
+            </td>
+            <td><input type="submit" name="ajouter_prestation" value="Ajouter"></td>
         </form>
     </tr>
 </table>
@@ -241,15 +306,14 @@ $nextIdV = getNextId($conn, "Visiteurs", "id_visiteur");
                 </select>
             </td>
 
+            <td><input type="text" value="<?= htmlspecialchars($nextIdP) ?>" readonly></td>
             <td>
-                <input type="text" name="libelle_prestation_parrainage" placeholder="Libellé de la prestation" required>
-            </td>
-
-            <td>
-                <select name="niveau_prestation_parrainage" required>
-                    <option value="Bronze">Bronze</option>
-                    <option value="Argent">Argent</option>
-                    <option value="Or">Or</option>
+                <select name="id_prestation_parrainage" required>
+                    <?php foreach ($prestations as $p): ?>
+                    <option value="<?= $p['ID_PRESTATION'] ?>">
+                        <?= htmlspecialchars($p['LIBELLE_PRESTATION'].' ('.$p['NIVEAU_CONTRIBUTION'].')') ?>
+                    </option>
+                    <?php endforeach; ?>
                 </select>
             </td>
 
