@@ -69,6 +69,44 @@
     );
 
     $nextIdR = getNextId($conn, "Reparation", "id_reparation");
+
+    /* =========================
+    AJOUT PRESTATAIRE
+    ========================= */
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_prestataire'])) {
+        if (!postFieldsFilled(['nom_societe', 'adresse_societe', 'telephone_societe'])) {
+            $message = "Veuillez remplir tous les champs.";
+        } else {
+            $idPrest = getNextId($conn, "Prestataire", "id_prestataire");
+
+            execQuery(
+                $conn,
+                "INSERT INTO Prestataire (id_prestataire, adresse_societe, nom_societe, telephone_societe)
+                VALUES (:id, :adresse, :nom, :tel)",
+                [
+                    ':id'      => $idPrest,
+                    ':adresse' => $_POST['adresse_societe'],
+                    ':nom'     => $_POST['nom_societe'],
+                    ':tel'     => $_POST['telephone_societe']
+                ]
+            );
+
+            oci_commit($conn);
+            $message = "Prestataire ajouté avec succès.";
+        }
+    }
+
+    /* =========================
+    AFFICHAGE PRESTATAIRES
+    ========================= */
+    $prestataires = fetchAllRows(
+        $conn,
+        "SELECT id_prestataire, nom_societe, adresse_societe, telephone_societe
+        FROM Prestataire
+        ORDER BY nom_societe"
+    );
+
+    $nextIdPrest = getNextId($conn, "Prestataire", "id_prestataire");
 ?>
 
 <!DOCTYPE html>
@@ -85,7 +123,7 @@
         <h2>Gestion des réparations</h2>
 
         <?php if ($message): ?>
-            <p><strong><?= htmlspecialchars($message) ?></strong></p>
+            <p><strong><?php echo htmlspecialchars($message) ?></strong></p>
         <?php endif; ?>
 
         <table border="1">
@@ -100,19 +138,19 @@
 
             <?php foreach ($reparations as $r): ?>
             <tr>
-                <td><?= htmlspecialchars($r['ID_REPARATION']) ?></td>
-                <td><?= htmlspecialchars($r['NATURE_REPARATION']) ?></td>
-                <td><?= htmlspecialchars($r['LIBELLE_REPARATION'] ?? '-') ?></td>
-                <td>Enclos <?= htmlspecialchars($r['ID_ENCLOS']) ?> – <?= htmlspecialchars($r['LIBELLE_ZONE']) ?></td>
-                <td><?= htmlspecialchars($r['PRENOM_PERSONNEL'].' '.$r['NOM_PERSONNEL']) ?></td>
-                <td><?= !empty($r['NOM_SOCIETE']) ? htmlspecialchars($r['NOM_SOCIETE']) : 'Interne' ?></td>
+                <td><?php echo htmlspecialchars($r['ID_REPARATION']) ?></td>
+                <td><?php echo htmlspecialchars($r['NATURE_REPARATION']) ?></td>
+                <td><?php echo htmlspecialchars($r['LIBELLE_REPARATION'] ?? '-') ?></td>
+                <td>Enclos <?php echo htmlspecialchars($r['ID_ENCLOS']) ?> – <?php echo htmlspecialchars($r['LIBELLE_ZONE']) ?></td>
+                <td><?php echo htmlspecialchars($r['PRENOM_PERSONNEL'].' '.$r['NOM_PERSONNEL']) ?></td>
+                <td><?php echo !empty($r['NOM_SOCIETE']) ? htmlspecialchars($r['NOM_SOCIETE']) : 'Interne' ?></td>
             </tr>
             <?php endforeach; ?>
 
             <!-- Ligne d'ajout -->
             <tr>
                 <form method="post">
-                    <td><input type="text" value="<?= htmlspecialchars($nextIdR) ?>" readonly></td>
+                    <td><input type="text" value="<?php echo htmlspecialchars($nextIdR) ?>" readonly></td>
 
                     <td>
                         <input type="text" name="nature_reparation" required>
@@ -125,8 +163,8 @@
                     <td>
                         <select name="id_enclos_reparation" required>
                             <?php foreach ($enclos as $e): ?>
-                            <option value="<?= $e['ID_ENCLOS'] ?>">
-                                Enclos <?= htmlspecialchars($e['ID_ENCLOS']) ?> – <?= htmlspecialchars($e['LIBELLE_ZONE']) ?>
+                            <option value="<?php echo $e['ID_ENCLOS'] ?>">
+                                Enclos <?php echo htmlspecialchars($e['ID_ENCLOS']) ?> – <?php echo htmlspecialchars($e['LIBELLE_ZONE']) ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
@@ -135,8 +173,8 @@
                     <td>
                         <select name="id_personnel_reparation" required>
                             <?php foreach ($techniciens as $p): ?>
-                            <option value="<?= $p['ID_PERSONNEL'] ?>">
-                                <?= htmlspecialchars($p['PRENOM_PERSONNEL'].' '.$p['NOM_PERSONNEL']) ?>
+                            <option value="<?php echo $p['ID_PERSONNEL'] ?>">
+                                <?php echo htmlspecialchars($p['PRENOM_PERSONNEL'].' '.$p['NOM_PERSONNEL']) ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
@@ -146,14 +184,54 @@
                         <select name="id_prestataire_reparation">
                             <option value="">Interne (aucun prestataire)</option>
                             <?php foreach ($prestataires as $pr): ?>
-                            <option value="<?= $pr['ID_PRESTATAIRE'] ?>">
-                                <?= htmlspecialchars($pr['NOM_SOCIETE']) ?>
+                            <option value="<?php echo $pr['ID_PRESTATAIRE'] ?>">
+                                <?php echo htmlspecialchars($pr['NOM_SOCIETE']) ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
                     </td>
 
                     <td><input type="submit" name="ajouter_reparation" value="Ajouter"></td>
+                </form>
+            </tr>
+        </table>
+
+        <h2>Gestion des prestataires</h2>
+
+        <table border="1">
+            <tr>
+                <th>ID</th>
+                <th>Nom société</th>
+                <th>Adresse</th>
+                <th>Téléphone</th>
+            </tr>
+
+            <?php foreach ($prestataires as $p): ?>
+            <tr>
+                <td><?php echo htmlspecialchars($p['ID_PRESTATAIRE']) ?></td>
+                <td><?php echo htmlspecialchars($p['NOM_SOCIETE']) ?></td>
+                <td><?php echo htmlspecialchars($p['ADRESSE_SOCIETE']) ?></td>
+                <td><?php echo '0'.htmlspecialchars($p['TELEPHONE_SOCIETE']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+
+            <tr>
+                <form method="post">
+                    <td>
+                        <input type="text" value="<?php echo htmlspecialchars($nextIdPrest) ?>" readonly>
+                    </td>
+                    <td>
+                        <input type="text" name="nom_societe" required>
+                    </td>
+                    <td>
+                        <input type="text" name="adresse_societe" required>
+                    </td>
+                    <td>
+                        <input type="text" name="telephone_societe" required>
+                    </td>
+                    <td>
+                        <input type="submit" name="ajouter_prestataire" value="Ajouter">
+                    </td>
                 </form>
             </tr>
         </table>
