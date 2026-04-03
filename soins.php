@@ -136,6 +136,44 @@
     }
 
     /* =========================
+    AJOUT D'UN REPAS
+    ========================= */
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_repas'])) {
+        if (!postFieldsFilled(['nom_repas', 'date_repas', 'rfid_repas', 'id_personnel_repas', 'id_nourriture_repas', 'quantite_repas'])) {
+            $message = "Veuillez remplir tous les champs du repas.";
+        } else {
+            $nextIdRepas = getNextId($conn, "Repas", "id_repas");
+            execQuery($conn,
+                "INSERT INTO Repas VALUES (:id, :nom, TO_DATE(:date_repas, 'YYYY-MM-DD'), :rfid, :id_personnel)",
+                [
+                    ':id'           => $nextIdRepas,
+                    ':nom'          => $_POST['nom_repas'],
+                    ':date_repas'   => $_POST['date_repas'],
+                    ':rfid'         => $_POST['rfid_repas'],
+                    ':id_personnel' => $_POST['id_personnel_repas']
+                ]
+            );
+            execQuery($conn,
+                "INSERT INTO Contient VALUES (:id_repas, :id_nourriture, :quantite)",
+                [
+                    ':id_repas'      => $nextIdRepas,
+                    ':id_nourriture' => $_POST['id_nourriture_repas'],
+                    ':quantite'      => $_POST['quantite_repas']
+                ]
+            );
+            oci_commit($conn);
+            $message = "Repas ajouté avec succès.";
+        }
+    }
+
+    /* =========================
+    NOURRITURE
+    ========================= */
+    $nourritures = fetchAllRows($conn,
+        "SELECT id_nourriture, nom_nourriture FROM Nourriture ORDER BY nom_nourriture"
+    );
+    
+    /* =========================
     SOIGNEURS NON MANAGÉS
     ========================= */
     $soigneursNonManages = fetchAllRows($conn,
@@ -222,7 +260,7 @@
         "SELECT RFID, nom_animal, nom_usuel FROM Vue_Animal ORDER BY nom_animal"
     );
 
-    // Soigneurs et vétérinaires séparés pour le formulaire
+    //Soigneurs et vétérinaires séparés pour le formulaire
     $soigneursForm = fetchAllRows($conn,
         "SELECT id_personnel, nom_personnel, prenom_personnel, fonction
         FROM Vue_Personnel
@@ -230,6 +268,31 @@
         AND archiver_personnel = 'N'
         ORDER BY fonction DESC, nom_personnel"
     );
+
+    $rowsRepas = fetchAllRows($conn,
+        "SELECT R.id_repas, R.nom_repas, TO_CHAR(R.date_repas,'YYYY-MM-DD') AS date_repas,
+                A.nom_animal, R.RFID, P.prenom_personnel, P.nom_personnel,
+                N.nom_nourriture, C.quantite
+        FROM Repas R, Animal A, Personnel P, Contient C, Nourriture N
+        WHERE R.RFID = A.RFID
+        AND R.id_personnel = P.id_personnel
+        AND C.id_repas = R.id_repas
+        AND N.id_nourriture = C.id_nourriture
+        ORDER BY R.id_repas, N.nom_nourriture"
+    );
+
+    //Regroupement par repas
+    $repas = [];
+    foreach ($rowsRepas as $row) {
+        $id = $row['ID_REPAS'];
+        if (!isset($repas[$id])) {
+            $repas[$id] = ['id'       => $id, 'nom'      => $row['NOM_REPAS'], 'date'     => $row['DATE_REPAS'], 'animal'   => $row['NOM_ANIMAL'], 'rfid'     => $row['RFID'], 'personnel'=> $row['PRENOM_PERSONNEL'].' '.$row['NOM_PERSONNEL'], 'nourritures' => []
+            ];
+        }
+        $repas[$id]['nourritures'][] = $row['NOM_NOURRITURE'].' (x'.$row['QUANTITE'].')';
+    }
+
+    $nextIdRepas = getNextId($conn, "Repas", "id_repas");
 
 ?>
 <!DOCTYPE html>
@@ -249,28 +312,147 @@
 
         <!-- ===================== TABLEAU DES SOINS ===================== -->
         <h2>Liste des soins</h2>
-        <table border="1">
-            <tr>
-                <th>ID soin</th>
-                <th>Date</th>
-                <th>Complexité</th>
-                <th>Animal</th>
-                <th>RFID</th>
-                <th>Espèce</th>
-                <th>Personnel</th>
-            </tr>
-            <?php foreach ($soins as $row): ?>
+        <form method="post">
+            <table border="1">
                 <tr>
-                    <td><?php echo htmlspecialchars($row['ID_SOIN']) ?></td>
-                    <td><?php echo htmlspecialchars($row['DATE_SOIN']) ?></td>
-                    <td><?php echo htmlspecialchars($row['COMPLEXITE']) ?></td>
-                    <td><?php echo htmlspecialchars($row['NOM_ANIMAL']) ?></td>
-                    <td><?php echo htmlspecialchars($row['RFID']) ?></td>
-                    <td><?php echo htmlspecialchars($row['NOM_LATIN']) ?></td>
-                    <td><?php echo htmlspecialchars($row['PRENOM_PERSONNEL'].' '.$row['NOM_PERSONNEL']) ?></td>
+                    <th>ID soin</th>
+                    <th>Date</th>
+                    <th>Complexité</th>
+                    <th>Animal</th>
+                    <th>RFID</th>
+                    <th>Espèce</th>
+                    <th>Personnel</th>
+                    <th>Action</th>
                 </tr>
-            <?php endforeach; ?>
-        </table>
+                <?php foreach ($soins as $row): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($row['ID_SOIN']) ?></td>
+                        <td><?php echo htmlspecialchars($row['DATE_SOIN']) ?></td>
+                        <td><?php echo htmlspecialchars($row['COMPLEXITE']) ?></td>
+                        <td><?php echo htmlspecialchars($row['NOM_ANIMAL']) ?></td>
+                        <td><?php echo htmlspecialchars($row['RFID']) ?></td>
+                        <td><?php echo htmlspecialchars($row['NOM_LATIN']) ?></td>
+                        <td><?php echo htmlspecialchars($row['PRENOM_PERSONNEL'].' '.$row['NOM_PERSONNEL']) ?></td>
+                        <td></td>
+                    </tr>
+                <?php endforeach; ?>
+
+                <!-- LIGNE D'AJOUT -->
+                <tr>
+                    <td><input type="text" value="<?php echo $nextIdSoin ?>" readonly></td>
+                    <td><input type="date" name="date_soin" required></td>
+                    <td>
+                        <select name="complexite" required>
+                            <option value="Simple">Simple</option>
+                            <option value="Complexe">Complexe</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select name="rfid_soin" required>
+                            <?php foreach ($tousAnimaux as $a): ?>
+                                <option value="<?php echo htmlspecialchars($a['RFID']) ?>">
+                                    <?php echo htmlspecialchars($a['NOM_ANIMAL'].' ('.$a['NOM_USUEL'].')') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                    <td><i>Automatique</i></td>
+                    <td><i>Automatique</i></td>
+                    <td>
+                        <select name="id_personnel_soin" required>
+                            <?php foreach ($soigneursForm as $p): ?>
+                                <?php if ($p['FONCTION'] === 'Veterinaire'): ?>
+                                    <option value="<?php echo htmlspecialchars($p['ID_PERSONNEL']) ?>">
+                                        <?php echo htmlspecialchars($p['PRENOM_PERSONNEL'].' '.$p['NOM_PERSONNEL']. ' (vétérinaire)') ?>
+                                    </option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                            <?php foreach ($soigneursForm as $p): ?>
+                                <?php if ($p['FONCTION'] === 'Soigneur'): ?>
+                                    <option value="<?php echo htmlspecialchars($p['ID_PERSONNEL']) ?>">
+                                        <?php echo htmlspecialchars($p['PRENOM_PERSONNEL'].' '.$p['NOM_PERSONNEL']) ?>
+                                    </option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                    <td><input type="submit" name="ajouter_soin" value="Ajouter"></td>
+                </tr>
+            </table>
+        </form>
+
+        <!-- ===================== REPAS ===================== -->
+        <h2>Repas</h2>
+        <form method="post">
+            <table border="1">
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Date</th>
+                    <th>Animal</th>
+                    <th>RFID</th>
+                    <th>Préparé par</th>
+                    <th>Nourriture(s)</th>
+                    <th>Action</th>
+                </tr>
+                <?php foreach ($repas as $r): ?>
+                    <?php $nb = count($r['nourritures']); ?>
+                    <?php foreach ($r['nourritures'] as $i => $n): ?>
+                        <tr>
+                            <?php if ($i === 0): ?>
+                                <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($r['id']) ?></td>
+                                <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($r['nom']) ?></td>
+                                <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($r['date']) ?></td>
+                                <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($r['animal']) ?></td>
+                                <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($r['rfid']) ?></td>
+                                <td rowspan="<?php echo $nb ?>"><?php echo htmlspecialchars($r['personnel']) ?></td>
+                            <?php endif; ?>
+                            <td><?php echo htmlspecialchars($n) ?></td>
+                            <?php if ($i === 0): ?>
+                                <td rowspan="<?php echo $nb ?>"></td>
+                            <?php endif; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+
+                <!-- LIGNE D'AJOUT -->
+                <tr>
+                    <td><input type="text" value="<?php echo $nextIdRepas ?>" readonly></td>
+                    <td><input type="text" name="nom_repas" required></td>
+                    <td><input type="date" name="date_repas" required></td>
+                    <td>
+                        <select name="rfid_repas" required>
+                            <?php foreach ($tousAnimaux as $a): ?>
+                                <option value="<?php echo htmlspecialchars($a['RFID']) ?>">
+                                    <?php echo htmlspecialchars($a['NOM_ANIMAL'].' ('.$a['NOM_USUEL'].')') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                    <td><i>Auto</i></td>
+                    <td>
+                        <select name="id_personnel_repas" required>
+                            <?php foreach ($soigneurs as $s): ?>
+                                <option value="<?php echo htmlspecialchars($s['ID_PERSONNEL']) ?>">
+                                    <?php echo htmlspecialchars($s['PRENOM_PERSONNEL'].' '.$s['NOM_PERSONNEL']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                    <td>
+                        <select name="id_nourriture_repas" required>
+                            <?php foreach ($nourritures as $n): ?>
+                                <option value="<?php echo htmlspecialchars($n['ID_NOURRITURE']) ?>">
+                                    <?php echo htmlspecialchars($n['NOM_NOURRITURE']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="number" name="quantite_repas" min="1" value="1" required style="width:50px">
+                    </td>
+                    <td><input type="submit" name="ajouter_repas" value="Ajouter"></td>
+                </tr>
+            </table>
+        </form>
 
         <!-- ===================== HIÉRARCHIE CHEFS SOIGNEURS ===================== -->
         <h2>Chefs soigneurs et leurs équipes</h2>
@@ -444,69 +626,6 @@
                 <input type="submit" name="ajouter_attribution" value="Attribuer">
             </form>
         <?php endif; ?>
-
-        <!-- ===================== AJOUTER UN SOIN ===================== -->
-        <h2>Ajouter un soin</h2>
-        <form method="post">
-            <table border="1">
-                <tr>
-                    <th>ID soin</th>
-                    <th>Date</th>
-                    <th>Complexité</th>
-                    <th>Animal</th>
-                    <th>Soigneur / Vétérinaire</th>
-                    <th>Action</th>
-                </tr>
-                <tr>
-                    <td>
-                        <input type="text" value="<?php echo $nextIdSoin ?>" readonly>
-                    </td>
-                    <td>
-                        <input type="date" name="date_soin" required>
-                    </td>
-                    <td>
-                        <select name="complexite" required>
-                            <option value="Simple">Simple</option>
-                            <option value="Complexe">Complexe</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select name="rfid_soin" required>
-                            <?php foreach ($tousAnimaux as $a): ?>
-                                <option value="<?php echo htmlspecialchars($a['RFID']) ?>">
-                                    <?php echo htmlspecialchars($a['NOM_ANIMAL'].' ('.$a['NOM_USUEL'].')') ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                    <td>
-                        <select name="id_personnel_soin" required>
-                            <optgroup label="Vétérinaires">
-                                <?php foreach ($soigneursForm as $p): ?>
-                                    <?php if ($p['FONCTION'] === 'Veterinaire'): ?>
-                                        <option value="<?php echo htmlspecialchars($p['ID_PERSONNEL']) ?>">
-                                            <?php echo htmlspecialchars($p['PRENOM_PERSONNEL'].' '.$p['NOM_PERSONNEL']) ?>
-                                        </option>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </optgroup>
-                            <optgroup label="Soigneurs (Simple uniquement)">
-                                <?php foreach ($soigneursForm as $p): ?>
-                                    <?php if ($p['FONCTION'] === 'Soigneur'): ?>
-                                        <option value="<?php echo htmlspecialchars($p['ID_PERSONNEL']) ?>">
-                                            <?php echo htmlspecialchars($p['PRENOM_PERSONNEL'].' '.$p['NOM_PERSONNEL']) ?>
-                                        </option>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </optgroup>
-                        </select>
-                    </td>
-                    <td>
-                        <input type="submit" name="ajouter_soin" value="Ajouter">
-                    </td>
-                </tr>
-            </table>
-        </form>
 
     </body>
 </html>
