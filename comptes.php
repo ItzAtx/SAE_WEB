@@ -96,16 +96,13 @@
     $maxDateGlobale = max($derniersCA);
 
     //Employés de magasin non encore dans Travaille
-    $employesDisponibles = fetchAllRows($conn,
+    $employes = fetchAllRows($conn,
         "SELECT DISTINCT P.id_personnel, P.nom_personnel, P.prenom_personnel
         FROM Personnel P, Contrat C, Fonction F
         WHERE P.id_personnel = C.id_personnel
         AND C.id_fonction = F.id_fonction
         AND F.fonction = 'Employe de magasin'
         AND P.archiver_personnel = 'N'
-        AND NOT EXISTS (
-            SELECT * FROM Travaille T WHERE T.id_personnel = P.id_personnel
-        )
         ORDER BY P.nom_personnel"
     );
 
@@ -197,7 +194,7 @@
 
         <form method="post">
             <select name="id_personnel">
-                <?php foreach ($employesDisponibles as $e): ?>
+                <?php foreach ($employes as $e): ?>
                     <option value="<?= $e['ID_PERSONNEL'] ?>">
                         <?= htmlspecialchars($e['PRENOM_PERSONNEL'].' '.$e['NOM_PERSONNEL']) ?>
                     </option>
