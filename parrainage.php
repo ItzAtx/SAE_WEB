@@ -160,7 +160,7 @@ $nextIdP = getNextId($conn, "Prestations", "id_prestation");
 </head>
 <body>
 
-<a href="search.php"><button type="button">Retour à l'accueil</button></a>
+<a href="search.php"><button type="button">Accueil</button></a>
 
 <h2>Gestion des visiteurs</h2>
 
@@ -306,7 +306,6 @@ $nextIdP = getNextId($conn, "Prestations", "id_prestation");
                 </select>
             </td>
 
-            <td><input type="text" value="<?= htmlspecialchars($nextIdP) ?>" readonly></td>
             <td>
                 <select name="id_prestation_parrainage" required>
                     <?php foreach ($prestations as $p): ?>
@@ -316,6 +315,7 @@ $nextIdP = getNextId($conn, "Prestations", "id_prestation");
                     <?php endforeach; ?>
                 </select>
             </td>
+            <td><i>Automatique</i></td>
 
             <td><input type="submit" name="ajouter_parrainage" value="Ajouter"></td>
         </form>

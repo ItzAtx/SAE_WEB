@@ -233,8 +233,8 @@ INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution)
 INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (2, 'Nourrir animal', 'Argent');
 INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (3, 'Photo avec animal', 'Bronze');
 INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (4, 'Journée avec animal', 'Or');
-INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (8, 'Parrainage Bronze - Franklin', 'Bronze');
-INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (9, 'Parrainage Or - Dumbo', 'Or');
+INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (5, 'Parrainage Bronze - Franklin', 'Bronze');
+INSERT INTO Prestations (id_prestation, libelle_prestation, niveau_contribution) VALUES (6, 'Parrainage Or - Dumbo', 'Or');
 
 /*Visiteurs et parrainage
        Visiteur 1 (Antoine Leclerc) -> contribution Or     pour Simba (1001)

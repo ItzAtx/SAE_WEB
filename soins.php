@@ -241,7 +241,7 @@
 </head>
     <body>
 
-        <a href="search.php"><button type="button">Retour à l'accueil</button></a>
+        <a href="search.php"><button type="button">Accueil</button></a>
 
         <?php if ($message !== ""): ?>
             <p><strong><?php echo htmlspecialchars($message) ?></strong></p>

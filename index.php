@@ -35,7 +35,7 @@
                         //Si row n'est pas vide (signifie qu'il y a des données pour l'identifiant entré) et que le mot de passe est bon
                         if ($row && password_verify($mdp, $row['MOT_DE_PASSE'])){ 
                             $_SESSION['id'] = $row['ID_PERSONNEL'];
-                            header("Location: search.php"); //On émmène l'utilisateur à l'accueil
+                            header("Location: search.php"); //On emmène l'utilisateur à l'accueil
                             exit();
                         } else {
                             $_SESSION['erreur'] = "Identifiant ou mot de passe incorrect"; //Erreur si données mauvaises

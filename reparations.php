@@ -80,7 +80,7 @@
 </head>
     <body>
 
-        <a href="search.php"><button type="button">Retour à l'accueil</button></a>
+        <a href="search.php"><button type="button">Accueil</button></a>
 
         <h2>Gestion des réparations</h2>
 
