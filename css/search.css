@@ -79,7 +79,7 @@ input[type="submit"]:hover {
     background: #1b5e20;
 }
 
-#results {
+.results {
     width: 90%;
     max-width: 1100px;
     margin: 0 auto 40px auto;
@@ -91,7 +91,7 @@ input[type="submit"]:hover {
     box-sizing: border-box;
 }
 
-#results h2 {
+.results h2 {
     margin-top: 0;
     color: white;
     font-size: 28px;

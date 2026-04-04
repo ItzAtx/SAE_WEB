@@ -14,8 +14,8 @@
     //Valeur tapée dans la barre de recherche
     $searchVal = isset($_GET["search"]) ? trim($_GET["search"]) : "";
 
-    //Tableau qui contiendra tous les résultats à afficher
-    $results = [];
+    //Tableau qui contiendra tous les résultats à afficher, regroupés par type
+    $resultsByType = [];
 
     //Si l'utilisateur arrive sur la page pour la première fois, on affiche tout
     //Sinon on affiche ce qu'il a coché
@@ -76,8 +76,7 @@
         foreach ($rows as $row) {
             //Ajoute "[Archivé]" dans le titre si le personnel est archivé
             $estArchive = $row["ARCHIVER_PERSONNEL"] === "O" ? " [Archivé]" : "";
-            $results[] = [
-                "type" => "Personnel",
+            $resultsByType["Personnel"][] = [
                 "titre" => $row["PRENOM_PERSONNEL"]." ".$row["NOM_PERSONNEL"].$estArchive,
                 "ligne1" => "ID : ".$row["ID_PERSONNEL"],
                 "ligne2" => "Connexion : ".$row["ID_CONNEXION"],
@@ -116,8 +115,7 @@
         );
 
         foreach ($rows as $row) {
-            $results[] = [
-                "type"   => "Animal",
+            $resultsByType["Animal"][] = [
                 "titre"  => $row["NOM_ANIMAL"],
                 "ligne1" => "RFID : ".$row["RFID"],
                 "ligne2" => "Espèce : ".$row["NOM_USUEL"]." (".$row["NOM_LATIN"].")",
@@ -148,8 +146,7 @@
         );
 
         foreach ($rows as $row) {
-            $results[] = [
-                "type"   => "Espèce",
+            $resultsByType["Espèce"][] = [
                 "titre"  => $row["NOM_USUEL"],
                 "ligne1" => "Nom latin : ".$row["NOM_LATIN"],
                 "ligne2" => "Menacée : ".($row["MENACE"] === "O" ? "Oui" : "Non"),
@@ -207,8 +204,7 @@
         );
 
         foreach ($rows as $row) {
-            $results[] = [
-                "type"   => "Enclos",
+            $resultsByType["Enclos"][] = [
                 "titre"  => "Enclos ".$row["ID_ENCLOS"],
                 "ligne1" => "Zone : ".$row["LIBELLE_ZONE"],
                 "ligne2" => "Surface : ".$row["SURFACE"]." m²",
@@ -238,8 +234,7 @@
         );
 
         foreach ($rows as $row) {
-            $results[] = [
-                "type"   => "Boutique",
+            $resultsByType["Boutique"][] = [
                 "titre"  => $row["NOM_BOUTIQUE"],
                 "ligne1" => "ID : ".$row["ID_BOUTIQUE"],
                 "ligne2" => "Type : ".$row["TYPE_BOUTIQUE"],
@@ -267,8 +262,7 @@
         );
 
         foreach ($rows as $row) {
-            $results[] = [
-                "type"   => "Zone",
+            $resultsByType["Zone"][] = [
                 "titre"  => $row["LIBELLE_ZONE"],
                 "ligne1" => "ID : ".$row["ID_ZONE"],
                 "ligne2" => "Responsable : ".$row["PRENOM_PERSONNEL"]." ".$row["NOM_PERSONNEL"],
@@ -293,14 +287,14 @@
             FROM Contrat C, Personnel P, Fonction F
             WHERE C.id_personnel = P.id_personnel
             AND C.id_fonction = F.id_fonction
+            $whereSearch
             ORDER BY P.id_personnel",
             $aCherche ? [":pattern" => $pattern] : []
         );
 
         foreach ($rows as $row) {
             $dateFin = $row["DATE_FIN"] ? "Date de fin : ".$row["DATE_FIN"] : "Contrat en cours";
-            $results[] = [
-                "type"   => "Contrat",
+            $resultsByType["Contrat"][] = [
                 "titre"  => $row["PRENOM_PERSONNEL"]." ".$row["NOM_PERSONNEL"],
                 "ligne1" => "ID contrat : ".$row["ID_CONTRAT"],
                 "ligne2" => "Fonction : ".$row["FONCTION"],
@@ -437,40 +431,42 @@
         </div>
 
         <!-- Zone d'affichage des résultats -->
-        <div id="results">
-            <h2>Résultats</h2>
-            <?php if (count($results) === 0): ?>
+        <?php if (empty($resultsByType)): ?>
+            <div class="results">
+                <h2>Résultats</h2>
                 <p>Aucun résultat trouvé.</p>
-            <?php else: ?>
-                <?php foreach ($results as $item): ?>
-                <div class="item">
-                    <h3>
-                        <?php echo $item["type"]; ?> :
-                        <?php echo htmlspecialchars($item["titre"]); ?>
-                    </h3>
+            </div>
+        <?php else: ?>
+            <?php foreach ($resultsByType as $type => $items): ?>
+                <div class="results">
+                    <h2><?php echo htmlspecialchars($type); ?></h2>
+                    <?php foreach ($items as $item): ?>
+                        <div class="item">
+                            <h3><?php echo htmlspecialchars($item["titre"]); ?></h3>
 
-                        <?php if ($item["ligne1"] !== ""): ?>
-                            <p><?php echo htmlspecialchars($item["ligne1"]); ?></p>
-                        <?php endif; ?>
+                            <?php if ($item["ligne1"] !== ""): ?>
+                                <p><?php echo htmlspecialchars($item["ligne1"]); ?></p>
+                            <?php endif; ?>
 
-                        <?php if ($item["ligne2"] !== ""): ?>
-                            <p><?php echo htmlspecialchars($item["ligne2"]); ?></p>
-                        <?php endif; ?>
+                            <?php if ($item["ligne2"] !== ""): ?>
+                                <p><?php echo htmlspecialchars($item["ligne2"]); ?></p>
+                            <?php endif; ?>
 
-                        <?php if ($item["ligne3"] !== ""): ?>
-                            <p><?php echo htmlspecialchars($item["ligne3"]); ?></p>
-                        <?php endif; ?>
+                            <?php if ($item["ligne3"] !== ""): ?>
+                                <p><?php echo htmlspecialchars($item["ligne3"]); ?></p>
+                            <?php endif; ?>
 
-                        <?php if ($item["ligne4"] !== ""): ?>
-                            <p><?php echo htmlspecialchars($item["ligne4"]); ?></p>
-                        <?php endif; ?>
+                            <?php if ($item["ligne4"] !== ""): ?>
+                                <p><?php echo htmlspecialchars($item["ligne4"]); ?></p>
+                            <?php endif; ?>
 
-                        <?php if (key_exists("ligne5", $item) && ($item["ligne5"] !== "")): ?>
-                            <p><?php echo htmlspecialchars($item["ligne5"]); ?></p>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+                            <?php if (key_exists("ligne5", $item) && ($item["ligne5"] !== "")): ?>
+                                <p><?php echo htmlspecialchars($item["ligne5"]); ?></p>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </body>
 </html>
