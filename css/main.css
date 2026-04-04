@@ -9,6 +9,7 @@ body {
     background-attachment: fixed;
     color: white;
     padding: 28px 36px 60px;
+    min-height: 100vh;
 }
 
 p {

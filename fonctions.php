@@ -70,16 +70,22 @@
     }
 
     function fetchAllRows($conn, $req, $binds = []) {
-        //Préparation de la requête
+        /*Entrée :
+        -Variable de la connexion
+        -Requête SELECT
+        -Paramètres pour les binds
+
+        Sortie :
+        -Tableau de tableaux associatifs (une entrée par ligne)
+
+        Exécute un SELECT et retourne toutes les lignes du résultat*/
         $requeteP = oci_parse($conn, $req);
 
-        //On remplace chaque paramètres par leurs valeurs
         foreach ($binds as $key => $value) {
             oci_bind_by_name($requeteP, $key, $binds[$key]);
         }
-        oci_execute($requeteP);//Execution
+        oci_execute($requeteP);
 
-        //On remplis le tableau par les lignes du résultat
         $rows = [];
         while ($row = oci_fetch_assoc($requeteP)) {
             $rows[] = $row;
@@ -147,10 +153,10 @@
         $params = [];
         foreach (['tablePersonnel','tableEnclos','tableBoutiques','tableAnimaux','tableEspeces'] as $t) {
             if (!empty($_POST[$t])) {
-                $params[] = $t.'='.$_POST[$t]; //Si la case est cochée, on l'ajoute dans la liste des tables à garder
+                $params[] = $t.'='.$_POST[$t];
             }
         }
-        $url = count($params) ? '?'.implode('&', $params) : ''; //S'il y a au moins une table, alors on la met dans l'url, sinon on ne met rien
+        $url = count($params) ? '?'.implode('&', $params) : '';
         header("Location: gestion.php".$url);
         exit();
     }
@@ -174,7 +180,6 @@
         Attitre, Soins, Parrainer, Contient (via Repas), Repas, Animal
         On met aussi à NULL les références père/mère des autres animaux*/
 
-        //Suppression dans Contient pour chaque repas de l'animal
         $reqRepas = oci_parse($conn, "SELECT id_repas FROM Repas WHERE RFID = :rfid");
         oci_bind_by_name($reqRepas, ':rfid', $rfid);
         oci_execute($reqRepas, OCI_NO_AUTO_COMMIT);
@@ -182,11 +187,9 @@
             deleteWhere($conn, 'Contient', 'id_repas', $r['ID_REPAS']);
         }
 
-        //Suppression des liens père/mère vers cet animal
         execQuery($conn, "UPDATE Animal SET RFID_a_pour_pere = NULL WHERE RFID_a_pour_pere = :rfid", [':rfid' => $rfid]);
         execQuery($conn, "UPDATE Animal SET RFID_a_pour_mere = NULL WHERE RFID_a_pour_mere = :rfid", [':rfid' => $rfid]);
 
-        //Suppressions simples dans les autres tables
         deleteWhere($conn, 'Attitre', 'RFID', $rfid);
         deleteWhere($conn, 'Soins', 'RFID', $rfid);
         deleteWhere($conn, 'Parrainer', 'RFID', $rfid);
@@ -234,11 +237,11 @@
 
         foreach (['tablePersonnel','tableEnclos','tableBoutiques','tableAnimaux','tableEspeces'] as $t) {
             if (!empty($_GET[$t])) {
-                $params[] = $t.'='.$_GET[$t];  //Construction de la liste des tables cochées
+                $params[] = $t.'='.$_GET[$t];
             }
         }
 
-        $params[] = $param.'='.$value; //Ajout de l'identification de la ligne modifiée, exemple : edit_boutique=2 => modification de la ligne 2 dans Boutique
+        $params[] = $param.'='.$value;
 
         $url = 'gestion.php?'.implode('&', $params);
         echo '<a href="'.$url.'"><button type="button" class="btn-edit">Modifier</button></a>';
@@ -249,10 +252,10 @@
         $params = [];
         foreach (['tablePersonnel','tableEnclos','tableBoutiques','tableAnimaux','tableEspeces'] as $t) {
             if (!empty($_GET[$t])) {
-                $params[] = $t.'='.$_GET[$t]; //Construction de la liste des tables cochées
+                $params[] = $t.'='.$_GET[$t];
             }
         }
-        $url = 'gestion.php'.(count($params) ? '?'.implode('&', $params) : ''); //Si le nombre de tableaux dans la liste est différent de 0, on crée le lien
+        $url = 'gestion.php'.(count($params) ? '?'.implode('&', $params) : '');
         echo '<a href="'.$url.'"><button type="button">Annuler</button></a>';
     }
 
@@ -302,11 +305,11 @@
             ORDER BY nom_personnel"
         );
         oci_execute($req);
-        echo '<select name="'.$name.'">'; //Création du select
+        echo '<select name="'.$name.'">';
         while ($row = oci_fetch_assoc($req)) {
-            $label = $row['PRENOM_PERSONNEL'].' '.$row['NOM_PERSONNEL']; //Concaténation du prénom et du nom
-            $sel = ($label === $selected) ? ' selected' : ''; //Si ça correspond au responsable actuellement sélectionnée (paramètre), on met selected sinon chaîne vide
-            echo '<option value="'.htmlspecialchars($label).'"'.$sel.'>'.htmlspecialchars($label).'</option>'; //Ajout de l'option selected si besoin
+            $label = $row['PRENOM_PERSONNEL'].' '.$row['NOM_PERSONNEL'];
+            $sel = ($label === $selected) ? ' selected' : '';
+            echo '<option value="'.htmlspecialchars($label).'"'.$sel.'>'.htmlspecialchars($label).'</option>';
         }
         echo '</select>';
     }
@@ -320,7 +323,7 @@
         Génère un <select> avec toutes les espèces connues*/
         $req = oci_parse($conn, "SELECT nom_usuel FROM Espece ORDER BY nom_usuel");
         oci_execute($req);
-        echo '<select name="'.$name.'">'; //Création du select
+        echo '<select name="'.$name.'">';
         while ($row = oci_fetch_assoc($req)) {
             $val = $row['NOM_USUEL'];
             $sel = ($val === $selected) ? ' selected' : '';
@@ -329,12 +332,27 @@
         echo '</select>';
     }
 
-    function getNextId($conn, $table, $colonne){
+    function getNextId($conn, $table, $colonne) {
+        /*Entrée :
+        -Variable de la connexion
+        -Nom de la table
+        -Nom de la colonne dont on veut le prochain ID
+
+        Sortie :
+        -Prochain ID disponible (MAX + 1, ou 1 si la table est vide)
+
+        Calcule le prochain ID disponible pour une colonne donnée*/
         $row = fetchOne($conn, "SELECT NVL(MAX($colonne), 0) + 1 AS next_id FROM $table");
         return $row['NEXT_ID'];
     }
 
     function archiverPersonnel($conn, $id, $dateFin) {
+        /*Entrée :
+        -Variable de la connexion
+        -ID du personnel à archiver
+        -Date de fin de contrat
+
+        Passe le personnel en archivé et clôture son contrat actif puis redirige vers gestion.php*/
         execQuery($conn, "UPDATE Personnel SET archiver_personnel = 'O' WHERE id_personnel = :id", [':id' => $id]);
         execQuery($conn, "UPDATE Contrat SET date_fin = TO_DATE(:date_fin, 'YYYY-MM-DD') WHERE id_personnel = :id AND date_fin IS NULL", [':date_fin' => $dateFin, ':id' => $id]);
         oci_commit($conn);
@@ -342,36 +360,62 @@
     }
 
     function remplacerChefSoigneur($conn, $id) {
+        /*Entrée :
+        -Variable de la connexion
+        -ID du chef soigneur à remplacer
+
+        Sortie :
+        -true si le remplacement a réussi, false si aucun équipier disponible
+
+        Remplace un chef soigneur par son premier équipier :
+        le remplaçant hérite de la zone et des équipiers restants*/
         $zoneResponsable = fetchOne($conn, "SELECT id_zone FROM Vue_Zone WHERE id_personnel = :id", [':id' => $id]);
-        
+
         if (!$zoneResponsable) {
+            //Le soigneur n'est responsable d'aucune zone : on supprime juste son lien d'équipier
             execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :id", [':id' => $id]);
             return true;
         }
 
+        //Récupération de tous les équipiers du chef soigneur à remplacer
         $equipiers = fetchAllRows($conn,
             "SELECT id_personnel_est_manager_par AS id_equipier FROM Chef WHERE id_personnel_manager_de = :id ORDER BY id_personnel_est_manager_par",
             [':id' => $id]
         );
 
-        if (empty($equipiers)) return false;
+        if (empty($equipiers)) return false; //Aucun équipier disponible pour prendre la suite
 
-        $idRemplacant = $equipiers[0]['ID_EQUIPIER'];
-        $autresEquipiers = array_slice($equipiers, 1);
+        $idRemplacant = $equipiers[0]['ID_EQUIPIER']; //Le premier équipier devient le nouveau chef
+        $autresEquipiers = array_slice($equipiers, 1); //Les autres restent équipiers sous le nouveau chef
 
+        //Suppression des anciens liens du chef et du remplaçant
         execQuery($conn, "DELETE FROM Chef WHERE id_personnel_manager_de = :id", [':id' => $id]);
         execQuery($conn, "DELETE FROM Chef WHERE id_personnel_est_manager_par = :r", [':r' => $idRemplacant]);
 
+        //Rattachement des équipiers restants au nouveau chef
         foreach ($autresEquipiers as $eq) {
             execQuery($conn, "INSERT INTO Chef VALUES (:r, :e)", [':r' => $idRemplacant, ':e' => $eq['ID_EQUIPIER']]);
         }
 
+        //Affectation de la zone au nouveau chef
         execQuery($conn, "UPDATE Zone_zoo SET id_personnel = :r WHERE id_zone = :z", [':r' => $idRemplacant, ':z' => $zoneResponsable['ID_ZONE']]);
         return true;
     }
 
     function gererDepartFonction($conn, $id, $fonction) {
+        /*Entrée :
+        -Variable de la connexion
+        -ID du personnel qui part
+        -Fonction du personnel
+
+        Sortie :
+        -true si le départ a pu être géré, string d'erreur sinon
+
+        Gère les conséquences du départ d'un personnel selon sa fonction :
+        réaffectation des zones, boutiques, animaux ou enclos concernés*/
+
         if ($fonction === 'Directeur') {
+            //Vérification qu'il reste au moins un autre directeur actif
             $rowCount = fetchOne($conn,
                 "SELECT COUNT(*) AS nb
                 FROM Vue_Personnel
@@ -383,6 +427,7 @@
                 return "Impossible : ce personnel est le seul directeur.";
             }
 
+            //Libération de la zone dont il était responsable
             execQuery($conn,
                 "UPDATE Zone_zoo SET id_personnel = NULL WHERE id_personnel = :id",
                 [':id' => $id]
@@ -391,6 +436,7 @@
         }
 
         if ($fonction === 'Directeur de magasin') {
+            //Vérification qu'il reste au moins un autre directeur de magasin actif
             $rowCount = fetchOne($conn,
                 "SELECT COUNT(*) AS nb
                 FROM Vue_Personnel
@@ -402,6 +448,7 @@
                 return "Impossible : ce personnel est le seul directeur de magasin.";
             }
 
+            //Récupération du directeur de magasin actif avec le plus petit ID pour reprendre les boutiques
             $autreDir = fetchOne($conn,
                 "SELECT MIN(id_personnel) AS id_personnel
                 FROM Vue_Personnel
@@ -411,6 +458,7 @@
                 [':id' => $id]
             );
 
+            //Réaffectation des boutiques au directeur remplaçant
             execQuery($conn,
                 "UPDATE Boutique
                 SET id_personnel = :new_id
@@ -421,11 +469,13 @@
         }
 
         if ($fonction === 'Employe de magasin') {
+            //Suppression de toutes ses affectations en boutique
             deleteWhere($conn, 'Travaille', 'id_personnel', $id);
             return true;
         }
 
         if ($fonction === 'Soigneur') {
+            //Remplacement du chef soigneur si nécessaire puis suppression de ses attributions d'animaux
             if (!remplacerChefSoigneur($conn, $id)) {
                 return "Impossible : ce chef soigneur n'a pas d'équipier pour le remplacer.";
             }
@@ -434,6 +484,7 @@
         }
 
         if ($fonction === 'Technicien') {
+            //Suppression de ses affectations d'entretien d'enclos
             deleteWhere($conn, 'Entretient', 'id_personnel', $id);
             return true;
         }

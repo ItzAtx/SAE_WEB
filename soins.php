@@ -5,24 +5,28 @@
 
     $message = "";
 
-    /* =========================
-    AJOUT D'UN SOIN
-    ========================= */
+    /* ====================================================================================================================================================== */
+    /* ========================================================= MODIFICATION DES DONNÉES =================================================================== */
+    /* ====================================================================================================================================================== */
+    
+    //AJOUT D'UN SOIN
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_soin'])) {
         $fields = ['date_soin', 'complexite', 'rfid_soin', 'id_personnel_soin'];
         if (!postFieldsFilled($fields)) {
             $message = "Veuillez remplir tous les champs du soin.";
         } else {
+            //Récupération de la fonction
             $rowFonction = fetchOne($conn,
                 "SELECT fonction FROM Vue_Personnel WHERE id_personnel = :id",
                 [':id' => $_POST['id_personnel_soin']]
             );
-            $fonction = $rowFonction ? $rowFonction['FONCTION'] : null;
+            $fonction = $rowFonction['FONCTION'];
 
             if ($_POST['complexite'] === 'Complexe' && $fonction !== 'Veterinaire') {
                 $message = "Erreur : seul un vétérinaire peut réaliser un soin complexe.";
             } else {
                 $nextIdSoin = getNextId($conn, "Soins", "id_soin");
+                //Insertion du nouveau soin
                 execQuery($conn,
                     "INSERT INTO Soins VALUES (:id_soin, TO_DATE(:date_soin, 'YYYY-MM-DD'), :complexite, :id_personnel, :rfid)",
                     [':id_soin' => $nextIdSoin, ':date_soin' => $_POST['date_soin'], ':complexite' => $_POST['complexite'], ':id_personnel' => $_POST['id_personnel_soin'], ':rfid' => $_POST['rfid_soin']]
@@ -33,10 +37,9 @@
         }
     }
 
-    /* ============
-    ATTRIBUTION
-    =============== */
+    //ATTRIBUTION D'UN ANIMAL A UN SOIGNEUR
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_attribution']) && postFieldsFilled(['rfid', 'id_personnel'])) {
+        //Attribution de l'animal au soigneur
         execQuery($conn,
             "INSERT INTO Attitre VALUES (:rfid, :id_personnel)",
             [":rfid" => $_POST['rfid'], ":id_personnel" => $_POST['id_personnel']]
@@ -45,10 +48,9 @@
         $message = "Soigneur attitré ajouté avec succès.";
     }
 
-    /* ==============================
-    AJOUT D'UN SOIGNEUR À UNE ÉQUIPE
-    ================================= */
+    //AJOUT D'UN SOIGNEUR À UNE ÉQUIPE
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_equipe']) && postFieldsFilled(['id_soigneur_equipe', 'id_chef_equipe'])) {
+        //Ajout du soigneur dans l'équipe
         execQuery($conn,
             "INSERT INTO Chef VALUES (:id_chef, :id_soigneur)",
             [":id_chef" => $_POST['id_chef_equipe'], ":id_soigneur" => $_POST['id_soigneur_equipe']]
@@ -57,18 +59,64 @@
         $message = "Soigneur ajouté à l'équipe avec succès.";
     }
 
-    /* ======================
-    RECUPERATION DES SOINS
-    ========================= */
+    //AJOUT D'UN REPAS
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_repas'])) {
+        $nourrituresPost = isset($_POST['id_nourriture_repas']) ? (array)$_POST['id_nourriture_repas'] : [];
+        $quantitesPost = isset($_POST['quantite_repas']) ? (array)$_POST['quantite_repas'] : [];
+
+        //On garde uniquement les entrées dont la nourriture est renseignée
+        $lignesNourritures = [];
+        foreach ($nourrituresPost as $i => $idNourr) {
+            $idNourr = trim($idNourr);
+            $qte  = isset($quantitesPost[$i]) ? (int)$quantitesPost[$i] : 0;
+            if ($idNourr !== '' && $qte > 0 && !isset($lignesNourritures[$idNourr])) {
+                $lignesNourritures[$idNourr] = $qte;
+            }
+        }
+
+        if (!postFieldsFilled(['nom_repas', 'date_repas', 'rfid_repas', 'id_personnel_repas']) || empty($lignesNourritures)) {
+            $message = "Veuillez remplir tous les champs du repas et ajouter au moins une nourriture.";
+        } else {
+            $nextIdRepas = getNextId($conn, "Repas", "id_repas");
+            //Insertion du nouveau repas
+            execQuery($conn,
+                "INSERT INTO Repas VALUES (:id, :nom, TO_DATE(:date_repas, 'YYYY-MM-DD'), :rfid, :id_personnel)",
+                [
+                    ':id' => $nextIdRepas,
+                    ':nom' => $_POST['nom_repas'],
+                    ':date_repas' => $_POST['date_repas'],
+                    ':rfid' => $_POST['rfid_repas'],
+                    ':id_personnel' => $_POST['id_personnel_repas']
+                ]
+            );
+            foreach ($lignesNourritures as $idNourr => $qte) {
+                execQuery($conn,
+                    "INSERT INTO Contient VALUES (:id_repas, :id_nourriture, :quantite)",
+                    [
+                        ':id_repas' => $nextIdRepas,
+                        ':id_nourriture' => $idNourr,
+                        ':quantite' => $qte
+                    ]
+                );
+            }
+            oci_commit($conn);
+            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?msg=repas_ok');
+            exit;
+        }
+    }
+
+    /* ====================================================================================================================================================== */
+    /* ========================================================= RÉCUPÉRATION DES DONNÉES =================================================================== */
+    /* ====================================================================================================================================================== */
+
+    //Récupération des soins
     $soins = fetchAllRows($conn,
         "SELECT id_soin, TO_CHAR(date_soin,'YYYY-MM-DD') AS date_soin, complexite, RFID, nom_animal, nom_latin, id_personnel, nom_personnel, prenom_personnel
         FROM Vue_Soin
         ORDER BY id_soin ASC"
     );
 
-    /* =============================
-    ANIMAUX SANS SOIGNEUR ATTITRE
-    ================================ */
+    //Récupération des animaux sans soigneurs attitrés
     $animaux = fetchAllRows($conn,
         "SELECT VA.RFID, VA.nom_animal, VA.nom_latin
         FROM Vue_Animal VA
@@ -78,9 +126,7 @@
         ORDER BY VA.nom_animal"
     );
 
-    /* ===================
-    LISTE DES SOIGNEURS 
-    ====================== */
+    //Récupération des soigneurs
     $soigneurs = fetchAllRows($conn,
         "SELECT id_personnel, nom_personnel, prenom_personnel
         FROM Vue_Personnel
@@ -89,9 +135,7 @@
         ORDER BY nom_personnel"
     );
 
-    /* =========================
-    HIÉRARCHIE CHEFS SOIGNEURS
-    ========================= */
+    //Récupération des chefs soigneurs
     $rowsChefs = fetchAllRows($conn,
         "SELECT
             c.id_personnel_manager_de AS id_chef,
@@ -107,6 +151,7 @@
         ORDER BY VZ.nom_personnel"
     );
 
+    //Stockage des chefs
     $chefs = [];
     foreach ($rowsChefs as $row) {
         $idChef = $row['ID_CHEF'];
@@ -120,6 +165,7 @@
         $chefs[$idChef]['equipe'][] = ['nom' => $row['PRENOM_EQ'].' '.$row['NOM_EQ']];
     }
 
+    //Récupération des chefs sans équipiers
     $chefsSeuls = fetchAllRows($conn,
         "SELECT DISTINCT VZ.id_personnel AS id_chef, VZ.nom_personnel AS nom_chef, VZ.prenom_personnel AS prenom_chef, VZ.libelle_zone
         FROM Vue_Zone VZ
@@ -128,6 +174,7 @@
             SELECT * FROM Chef ch WHERE ch.id_personnel_manager_de = VZ.id_personnel
         )"
     );
+    
     foreach ($chefsSeuls as $row) {
         $idChef = $row['ID_CHEF'];
         if (!isset($chefs[$idChef])) {
@@ -135,63 +182,12 @@
         }
     }
 
-    /* =========================
-    AJOUT D'UN REPAS
-    ========================= */
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_repas'])) {
-        $nourrituresPost  = isset($_POST['id_nourriture_repas'])  ? (array)$_POST['id_nourriture_repas']  : [];
-        $quantitesPost    = isset($_POST['quantite_repas'])        ? (array)$_POST['quantite_repas']        : [];
-
-        // Dédoublonnage : garder uniquement les entrées dont la nourriture est renseignée
-        $lignesNourritures = [];
-        foreach ($nourrituresPost as $i => $idNourr) {
-            $idNourr = trim($idNourr);
-            $qte     = isset($quantitesPost[$i]) ? (int)$quantitesPost[$i] : 0;
-            if ($idNourr !== '' && $qte > 0 && !isset($lignesNourritures[$idNourr])) {
-                $lignesNourritures[$idNourr] = $qte;
-            }
-        }
-
-        if (!postFieldsFilled(['nom_repas', 'date_repas', 'rfid_repas', 'id_personnel_repas']) || empty($lignesNourritures)) {
-            $message = "Veuillez remplir tous les champs du repas et ajouter au moins une nourriture.";
-        } else {
-            $nextIdRepas = getNextId($conn, "Repas", "id_repas");
-            execQuery($conn,
-                "INSERT INTO Repas VALUES (:id, :nom, TO_DATE(:date_repas, 'YYYY-MM-DD'), :rfid, :id_personnel)",
-                [
-                    ':id'           => $nextIdRepas,
-                    ':nom'          => $_POST['nom_repas'],
-                    ':date_repas'   => $_POST['date_repas'],
-                    ':rfid'         => $_POST['rfid_repas'],
-                    ':id_personnel' => $_POST['id_personnel_repas']
-                ]
-            );
-            foreach ($lignesNourritures as $idNourr => $qte) {
-                execQuery($conn,
-                    "INSERT INTO Contient VALUES (:id_repas, :id_nourriture, :quantite)",
-                    [
-                        ':id_repas'      => $nextIdRepas,
-                        ':id_nourriture' => $idNourr,
-                        ':quantite'      => $qte
-                    ]
-                );
-            }
-            oci_commit($conn);
-            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?msg=repas_ok');
-            exit;
-        }
-    }
-
-    /* =========================
-    NOURRITURE
-    ========================= */
+    //Récupération des nourritures
     $nourritures = fetchAllRows($conn,
         "SELECT id_nourriture, nom_nourriture FROM Nourriture ORDER BY nom_nourriture"
     );
     
-    /* =========================
-    SOIGNEURS NON MANAGÉS
-    ========================= */
+    //Récupération des soigneurs non managés
     $soigneursNonManages = fetchAllRows($conn,
         "SELECT DISTINCT id_personnel, nom_personnel, prenom_personnel
         FROM Vue_Personnel VP
@@ -203,9 +199,7 @@
         ORDER BY nom_personnel"
     );
 
-    /* ================
-    CHEFS SOIGNEURS
-    ================== */
+    //Récupération des chefs soigneurs
     $chefsSoigneurs = fetchAllRows($conn,
         "SELECT DISTINCT id_personnel, nom_personnel, prenom_personnel, libelle_zone
         FROM Vue_Zone
@@ -213,9 +207,7 @@
         ORDER BY nom_personnel"
     );
 
-    /* =========================
-    SPÉCIALITÉS DES SOIGNEURS
-    ========================= */
+    //Récupération des spécialités des soigneurs
     $rowsSpecialites = fetchAllRows($conn,
         "SELECT VP.id_personnel, VP.nom_personnel, VP.prenom_personnel, e.nom_latin, e.nom_usuel, e.menace
         FROM Vue_Personnel VP, Specialiser s, Espece e
@@ -225,6 +217,7 @@
         ORDER BY VP.nom_personnel, VP.prenom_personnel, e.nom_usuel"
     );
 
+    //Crée un tableau contenant les spécialités correspondantes à leur soigneur
     $specialites = [];
     foreach ($rowsSpecialites as $row) {
         $id = $row['ID_PERSONNEL'];
@@ -238,9 +231,7 @@
         ];
     }
 
-    /* =========================
-    ANIMAUX ET LEURS SOIGNEURS ATTITRÉS
-    ========================= */
+    //Récupération des animaux et de leur soigneur attitré
     $animauxSoigneurs = fetchAllRows($conn,
         "SELECT VA.RFID, VA.nom_animal, VA.nom_latin, VA.nom_usuel, P.id_personnel, P.nom_personnel, P.prenom_personnel
         FROM Vue_Animal VA, Attitre AT, Personnel P
@@ -249,6 +240,7 @@
         ORDER BY VA.nom_animal"
     );
 
+    //Récupération des animaux sans soigneur attitré
     $animauxSansSoigneurAttitre = fetchAllRows($conn,
         "SELECT VA.RFID, VA.nom_animal, VA.nom_latin, VA.nom_usuel
         FROM Vue_Animal VA
@@ -256,9 +248,7 @@
         ORDER BY VA.nom_animal"
     );
 
-    /* =========================
-    VÉTÉRINAIRES
-    ========================= */
+    //Récupération des vétérinaires
     $veterinaires = fetchAllRows($conn,
         "SELECT id_personnel, nom_personnel, prenom_personnel
         FROM Vue_Personnel
@@ -267,16 +257,15 @@
         ORDER BY nom_personnel"
     );
 
-    /* =========================
-    DONNÉES POUR FORMULAIRE SOIN
-    ========================= */
+    //Calcul du prochain id de soin
     $nextIdSoin = getNextId($conn, "Soins", "id_soin");
 
+    //Récupération de tous les animaux
     $tousAnimaux = fetchAllRows($conn,
         "SELECT RFID, nom_animal, nom_usuel FROM Vue_Animal ORDER BY nom_animal"
     );
 
-    //Soigneurs et vétérinaires séparés pour le formulaire
+    //Récupération des soigneurs et des vétérinaires
     $soigneursForm = fetchAllRows($conn,
         "SELECT id_personnel, nom_personnel, prenom_personnel, fonction
         FROM Vue_Personnel
@@ -285,10 +274,9 @@
         ORDER BY fonction DESC, nom_personnel"
     );
 
+    //Récupération des repas
     $rowsRepas = fetchAllRows($conn,
-        "SELECT R.id_repas, R.nom_repas, TO_CHAR(R.date_repas,'YYYY-MM-DD') AS date_repas,
-                A.nom_animal, R.RFID, P.prenom_personnel, P.nom_personnel,
-                N.nom_nourriture, C.quantite
+        "SELECT R.id_repas, R.nom_repas, TO_CHAR(R.date_repas,'YYYY-MM-DD') AS date_repas, A.nom_animal, R.RFID, P.prenom_personnel, P.nom_personnel, N.nom_nourriture, C.quantite
         FROM Repas R, Animal A, Personnel P, Contient C, Nourriture N
         WHERE R.RFID = A.RFID
         AND R.id_personnel = P.id_personnel
@@ -302,7 +290,7 @@
     foreach ($rowsRepas as $row) {
         $id = $row['ID_REPAS'];
         if (!isset($repas[$id])) {
-            $repas[$id] = ['id'       => $id, 'nom'      => $row['NOM_REPAS'], 'date'     => $row['DATE_REPAS'], 'animal'   => $row['NOM_ANIMAL'], 'rfid'     => $row['RFID'], 'personnel'=> $row['PRENOM_PERSONNEL'].' '.$row['NOM_PERSONNEL'], 'nourritures' => []
+            $repas[$id] = ['id' => $id, 'nom' => $row['NOM_REPAS'], 'date' => $row['DATE_REPAS'], 'animal' => $row['NOM_ANIMAL'], 'rfid' => $row['RFID'], 'personnel'=> $row['PRENOM_PERSONNEL'].' '.$row['NOM_PERSONNEL'], 'nourritures' => []
             ];
         }
         $repas[$id]['nourritures'][] = $row['NOM_NOURRITURE'].' (x'.$row['QUANTITE'].')';

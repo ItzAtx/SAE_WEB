@@ -8,6 +8,7 @@ body {
     background-attachment: fixed;
     padding: 30px 40px 60px;
     color: white;
+    min-height: 100vh;
 }
 
 p {

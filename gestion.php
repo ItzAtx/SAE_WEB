@@ -5,13 +5,15 @@
 
     $message = "";
 
-    /* =========================
-    ARCHIVAGE PERSONNEL
-    ========================= */
+    /* ====================================================================================================================================================== */
+    /* ===================================================================== PERSONNEL ====================================================================== */
+    /* ====================================================================================================================================================== */
+
+    //ARCHIVER
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_personnel'])) {
         $id = $_POST['supprimer_id_personnel'];
 
-        //Vérifier la fonction du personnel à archiver
+        //Récupération de la fonction du personnel à archiver
         $rowFonction = fetchOne($conn,
             "SELECT fonction 
             FROM Vue_Personnel
@@ -19,21 +21,21 @@
             [':id' => $id]
         );
 
-        //Vérifier la date de début de contrat du personnel à archiver
+        //Récupération de la date de début de contrat du personnel à archiver
         $rowContrat = fetchOne($conn,
             "SELECT TO_CHAR(date_debut, 'YYYY-MM-DD') AS date_debut
             FROM Contrat
             WHERE id_personnel = :id AND date_fin IS NULL",
             [':id' => $id]
         );
+        $fonction = $rowFonction['FONCTION'];
 
-        $fonction = $rowFonction ? $rowFonction['FONCTION'] : null;
-
-        if ($rowContrat && $_POST['date_fin_archivage'] <= $rowContrat['DATE_DEBUT']) {
+        if ($_POST['date_fin_archivage'] <= $rowContrat['DATE_DEBUT']) {
             $message = "La date de fin doit être postérieure à la date de début (".$rowContrat['DATE_DEBUT'].")";
         } else {
             $dateFin = $_POST['date_fin_archivage'];
 
+            //Gère l'archivage selon la fonction du personnel à archiver
             $resultat = gererDepartFonction($conn, $id, $fonction);
             if ($resultat !== true) {
                 $message = $resultat;
@@ -43,9 +45,7 @@
         }
     }
 
-    /* =========================
-    AJOUT PERSONNEL
-    ========================= */
+    //AJOUT
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_personnel'])) {
         $fields = ['id_personnel', 'prenom_personnel', 'nom_personnel', 'mot_de_passe', 'id_connexion', 'zone_personnel', 'id_contrat', 'salaire', 'date_debut', 'fonction']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
@@ -73,9 +73,7 @@
         }
     }
 
-    /* =========================
-    MODIFICATION PERSONNEL
-    ========================= */
+    //MODIFICATION
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_personnel'])) {
         $fields = ['edit_id_personnel', 'edit_prenom_personnel', 'edit_nom_personnel', 'edit_id_connexion', 'edit_zone_personnel', 'edit_salaire', 'edit_date_debut', 'edit_fonction'];
         if (!postFieldsFilled($fields)) {
@@ -84,17 +82,17 @@
             $id = $_POST['edit_id_personnel'];
             $nouvelleFonction = $_POST['edit_fonction'];
 
-            // Récupération de la fonction actuelle
+            //Récupération de la fonction actuelle
             $rowFonctionActuelle = fetchOne($conn,
                 "SELECT fonction FROM Vue_Personnel WHERE id_personnel = :id",
                 [':id' => $id]
             );
-            
-            $fonctionActuelle = $rowFonctionActuelle ? $rowFonctionActuelle['FONCTION'] : null;
+            $fonctionActuelle = $rowFonctionActuelle['FONCTION'];
+
             $peutModifier = true;
 
             if ($fonctionActuelle !== $nouvelleFonction) {
-                $resultat = gererDepartFonction($conn, $id, $fonctionActuelle);
+                $resultat = gererDepartFonction($conn, $id, $fonctionActuelle); //On enlève la personne de son métier actuel
                 if ($resultat !== true) {
                     $message = $resultat;
                     $peutModifier = false;
@@ -104,6 +102,7 @@
             if ($peutModifier) {
                 $id_zone = getIdZone($conn, $_POST['edit_zone_personnel']);
 
+                //Modification du personnel avec les nouvelles valeurs
                 execQuery($conn,
                     "UPDATE Personnel SET prenom_personnel = :prenom, nom_personnel = :nom, id_connexion = :id_connexion, id_zone = :id_zone
                     WHERE id_personnel = :id_personnel",
@@ -127,9 +126,11 @@
         }
     }
 
-    /* =========================
-    SUPPRESSION ENCLOS
-    ========================= */
+    /* ====================================================================================================================================================== */
+    /* ====================================================================== ENCLOS ======================================================================== */
+    /* ====================================================================================================================================================== */
+
+    //SUPPRESSION
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_enclos'])) {
         $id = $_POST['supprimer_id_enclos'];
 
@@ -164,9 +165,7 @@
         redirectSelf();
     }
 
-    /* =========================
-    AJOUT ENCLOS
-    ========================= */
+    //AJOUT
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_enclos'])) {
         $fields = ['id_enclos', 'latitude', 'longitude', 'surface', 'zone_enclos']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
@@ -183,9 +182,7 @@
         }
     }
 
-    /* =========================
-    MODIFICATION ENCLOS
-    ========================= */
+    //MODIFICATION
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_enclos'])) {
         $fields = ['edit_id_enclos', 'edit_latitude', 'edit_longitude', 'edit_surface', 'edit_zone_enclos']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
@@ -203,13 +200,15 @@
         }
     }
 
-    /* =========================
-    SUPPRESSION BOUTIQUE
-    ========================= */
+    /* ====================================================================================================================================================== */
+    /* ===================================================================== BOUTIQUE ======================================================================= */
+    /* ====================================================================================================================================================== */
+
+    //SUPPRESSION
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_boutique'])) {
         $id = $_POST['supprimer_id_boutique'];
 
-        // Vérifier s'il y a des employés actifs travaillant dans cette boutique
+        //Vérifier s'il y a des employés actifs travaillant dans cette boutique
         $employes = fetchAllRows($conn,
             "SELECT P.id_personnel, P.prenom_personnel, P.nom_personnel
             FROM Travaille T, Personnel P
@@ -233,9 +232,7 @@
         }
     }
 
-    /* =========================
-    AJOUT BOUTIQUE
-    ========================= */
+    //AJOUT
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_boutique'])) {
         $fields = ['id_boutique', 'nom_boutique', 'type_boutique', 'responsable_boutique', 'zone_boutique']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
@@ -257,9 +254,7 @@
         }
     }
 
-    /* =========================
-    MODIFICATION BOUTIQUE
-    ========================= */
+    //MODIFICATION
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_boutique'])) {
         $fields = ['edit_id_boutique', 'edit_nom_boutique', 'edit_type_boutique', 'edit_responsable_boutique', 'edit_zone_boutique']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) { 
@@ -282,9 +277,11 @@
         }
     }
 
-    /* =========================
-    SUPPRESSION ANIMAL
-    ========================= */
+    /* ====================================================================================================================================================== */
+    /* ====================================================================== ANIMAL ======================================================================== */
+    /* ====================================================================================================================================================== */
+
+    //SUPPRESSION
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_rfid'])) {
         $rfid = $_POST['supprimer_rfid'];
         deleteAnimal($conn, $rfid); //Suppression en cascade via deleteAnimal
@@ -292,9 +289,7 @@
         redirectSelf();
     }
 
-    /* =========================
-    AJOUT ANIMAL
-    ========================= */
+    //AJOUT
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_animal'])) {
         $fields = ['rfid', 'nom_animal', 'date_naissance', 'poids', 'id_enclos_animal', 'espece_animal']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
@@ -315,9 +310,7 @@
         }
     }
 
-    /* =========================
-    MODIFICATION ANIMAL
-    ========================= */
+    //MODIFICATION
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_animal'])) {
         $fields = ['edit_rfid', 'edit_nom_animal', 'edit_date_naissance', 'edit_poids', 'edit_id_enclos_animal', 'edit_espece_animal']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
@@ -339,9 +332,11 @@
         }
     }
 
-    /* =========================
-    SUPPRESSION ESPECE
-    ========================= */
+    /* ====================================================================================================================================================== */
+    /* ====================================================================== ESPECE ======================================================================== */
+    /* ====================================================================================================================================================== */
+
+    //SUPPRESSION
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_nom_latin'])) {
         $nl = $_POST['supprimer_nom_latin'];
         deleteWhere($conn, 'Specialiser', 'nom_latin', $nl); //Suppression dans Specialiser
@@ -364,9 +359,7 @@
         redirectSelf();
     }
 
-    /* =========================
-    AJOUT ESPECE
-    ========================= */
+    //AJOUT
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajouter_espece'])) {
         $fields = ['nom_latin', 'nom_usuel', 'menace']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
@@ -382,9 +375,7 @@
         }
     }
 
-    /* =========================
-    MODIFICATION ESPECE
-    ========================= */
+    //MODIFICATION
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modifier_espece'])) {
         $fields = ['edit_nom_latin', 'edit_nom_usuel', 'edit_menace']; //Champs POST à vérifier
         if (!postFieldsFilled($fields)) {
@@ -401,11 +392,11 @@
         }
     }
 
-    /* =========================
-    REQUÊTES D'AFFICHAGE
-    ========================= */
+    /* ====================================================================================================================================================== */
+    /* ============================================================= RÉCUPÉRATION DE DONNÉES ================================================================ */
+    /* ====================================================================================================================================================== */
 
-    //Affiche les données de Personnel
+    //Récupère les données de Personnel
     $requetePersonnel = execQuery($conn,
         "SELECT id_personnel, prenom_personnel, nom_personnel, id_connexion, libelle_zone, id_contrat, salaire, TO_CHAR(date_debut,'YYYY-MM-DD') AS date_debut, fonction
         FROM Vue_Personnel
@@ -414,7 +405,7 @@
         []
     );
 
-    //Affiche les données de Enclos
+    //Récupère les données de Enclos
     $requeteEnclos = execQuery($conn,
         "SELECT id_enclos, latitude, longitude, surface, libelle_zone
         FROM Vue_Enclos
@@ -422,7 +413,7 @@
         []
     );
 
-    //Affiche les données de Boutique
+    //Récupère les données de Boutique
     $requeteBoutique = execQuery($conn,
         "SELECT id_boutique, nom_boutique, type_boutique, prenom_personnel || ' ' || nom_personnel AS responsable, libelle_zone
         FROM Vue_Boutique
@@ -430,7 +421,7 @@
         []
     );
 
-    //Affiche les données de Animal
+    //Récupère les données de Animal
     $requeteAnimal = execQuery($conn,
         "SELECT RFID, nom_animal, TO_CHAR(date_naissance,'YYYY-MM-DD') AS date_naissance, poids, id_enclos, nom_usuel
         FROM Vue_Animal
@@ -438,7 +429,7 @@
         []
     );
 
-    //Affiche les données de Espece
+    //Récupère les données de Espece
     $requeteEspece = execQuery($conn,
         "SELECT nom_latin, nom_usuel, menace 
         FROM Espece
@@ -490,16 +481,18 @@
 <?php if ($tablePersonnel): ?>
     <h2>Gestion du personnel</h2>
 
-    <!-- FORMULAIRE D'ARCHIVAGE : en dehors du tableau -->
+    <!-- FORMULAIRE D'ARCHIVAGE -->
     <?php if ($confirmerArchivage): ?>
+
         <?php
-        $rowAArchiver = fetchOne($conn,
-            "SELECT prenom_personnel, nom_personnel, TO_CHAR(date_fin,'YYYY-MM-DD') AS date_fin
-            FROM Vue_Personnel
-            WHERE id_personnel = :id",
-            [':id' => $confirmerArchivage]
-        );
+            $rowAArchiver = fetchOne($conn,
+                "SELECT prenom_personnel, nom_personnel, TO_CHAR(date_fin,'YYYY-MM-DD') AS date_fin
+                FROM Vue_Personnel
+                WHERE id_personnel = :id",
+                [':id' => $confirmerArchivage]
+            );
         ?>
+
         <p>
             Vous allez archiver <strong><?php echo htmlspecialchars($rowAArchiver['PRENOM_PERSONNEL'].' '.$rowAArchiver['NOM_PERSONNEL']) ?></strong>.
             <?php if ($rowAArchiver['DATE_FIN']): ?>
@@ -508,6 +501,7 @@
                 Veuillez saisir la date de fin de contrat.
             <?php endif; ?>
         </p>
+        
         <form method="post">
             <?php hiddenTables(); ?>
             <input type="hidden" name="supprimer_id_personnel" value="<?php echo htmlspecialchars($confirmerArchivage) ?>">

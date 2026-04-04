@@ -9,6 +9,7 @@ body {
     justify-content: center;
     align-items: center;
     color: rgba(244,247,245,1);
+    min-height: 100vh;
 }
 
 .container {

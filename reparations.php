@@ -7,30 +7,37 @@
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-        //Ajout réparation
+        //AJOUT RÉPARATION
         if (isset($_POST['ajouter_reparation'])) {
+
+            //Vérification que les champs obligatoires sont remplis
             if (!postFieldsFilled(['nature_reparation', 'id_enclos_reparation', 'id_personnel_reparation'])) {
                 $message = "Veuillez remplir tous les champs obligatoires.";
             } else {
+                //Récupération des valeurs du formulaire
                 $nature = $_POST['nature_reparation'];
-                $libelle= $_POST['libelle_reparation'] ?? null;
+                $libelle= $_POST['libelle_reparation'] ?? null; //Champ optionnel
                 $idEnclos = $_POST['id_enclos_reparation'];
                 $idPerso = $_POST['id_personnel_reparation'];
-                $idPrest = !empty($_POST['id_prestataire_reparation']) ? $_POST['id_prestataire_reparation'] : null;
+                $idPrest = !empty($_POST['id_prestataire_reparation']) ? $_POST['id_prestataire_reparation'] : null; //null si aucun prestataire sélectionné
 
+                //Génération du prochain ID de réparation
                 $idR = getNextId($conn, "Reparation", "id_reparation");
 
+                //Insertion de la réparation
                 execQuery($conn,
                     "INSERT INTO Reparation (id_reparation, nature_reparation, libelle_reparation, id_enclos)
                     VALUES (:id, :nat, :lib, :enc)",
                     [':id' => $idR, ':nat' => $nature, ':lib' => $libelle, ':enc' => $idEnclos]
                 );
 
+                //Association de la réparation au personnel responsable
                 execQuery($conn,
                     "INSERT INTO Entretient (id_personnel, id_reparation) VALUES (:ip, :ir)",
                     [':ip' => $idPerso, ':ir' => $idR]
                 );
 
+                //Si un prestataire est sélectionné, on l'associe à la réparation
                 if ($idPrest) {
                     execQuery($conn,
                         "INSERT INTO Participe (id_prestataire, id_reparation) VALUES (:ipr, :ir)",
@@ -44,6 +51,7 @@
         }
     }
 
+    //Récupération de toutes les réparations
     $reparations = fetchAllRows($conn,
         "SELECT id_reparation, nature_reparation, libelle_reparation, id_enclos,
                 libelle_zone, nom_personnel, prenom_personnel, nom_societe
@@ -51,11 +59,12 @@
         ORDER BY id_reparation"
     );
 
+    //Récupération de tous les enclos
     $enclos = fetchAllRows($conn,
         "SELECT id_enclos, libelle_zone FROM Vue_Enclos ORDER BY id_enclos"
     );
 
-    //Uniquement les techniciens non archivés via Vue_Personnel
+    //Récupération uniquement des techniciens non archivés via Vue_Personnel
     $techniciens = fetchAllRows($conn,
         "SELECT id_personnel, nom_personnel, prenom_personnel
         FROM Vue_Personnel
@@ -64,21 +73,25 @@
         ORDER BY nom_personnel"
     );
 
+    //Récupération de tous les prestataires
     $prestataires = fetchAllRows($conn,
         "SELECT id_prestataire, nom_societe FROM Prestataire ORDER BY nom_societe"
     );
 
+    //Génération du prochain ID de réparation pour l'afficher en lecture seule dans le formulaire
     $nextIdR = getNextId($conn, "Reparation", "id_reparation");
 
-    /* =========================
-    AJOUT PRESTATAIRE
-    ========================= */
+    //AJOUT PRESTATAIRE
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_prestataire'])) {
+
+        //Vérification que tous les champs sont remplis
         if (!postFieldsFilled(['nom_societe', 'adresse_societe', 'telephone_societe'])) {
             $message = "Veuillez remplir tous les champs.";
         } else {
+            //Génération du prochain ID de prestataire
             $idPrest = getNextId($conn, "Prestataire", "id_prestataire");
 
+            //Insertion du prestataire
             execQuery(
                 $conn,
                 "INSERT INTO Prestataire (id_prestataire, adresse_societe, nom_societe, telephone_societe)
@@ -96,9 +109,7 @@
         }
     }
 
-    /* =========================
-    AFFICHAGE PRESTATAIRES
-    ========================= */
+    //Récupération de tous les prestataires 
     $prestataires = fetchAllRows(
         $conn,
         "SELECT id_prestataire, nom_societe, adresse_societe, telephone_societe
@@ -106,6 +117,7 @@
         ORDER BY nom_societe"
     );
 
+    //Génération du prochain ID de prestataire pour l'afficher en lecture seule dans le formulaire
     $nextIdPrest = getNextId($conn, "Prestataire", "id_prestataire");
 ?>
 
@@ -122,10 +134,12 @@
 
         <h2>Gestion des réparations</h2>
 
+        <!-- Affichage du message de confirmation ou d'erreur -->
         <?php if ($message): ?>
             <p><strong><?php echo htmlspecialchars($message) ?></strong></p>
         <?php endif; ?>
 
+        <!-- Tableau listant toutes les réparations existantes + ligne d'ajout -->
         <table border="1">
             <tr>
                 <th>ID</th>
@@ -136,6 +150,7 @@
                 <th>Prestataire</th>
             </tr>
 
+            <!-- Affichage de chaque réparation -->
             <?php foreach ($reparations as $r): ?>
             <tr>
                 <td><?php echo htmlspecialchars($r['ID_REPARATION']) ?></td>
@@ -143,13 +158,15 @@
                 <td><?php echo htmlspecialchars($r['LIBELLE_REPARATION'] ?? '-') ?></td>
                 <td>Enclos <?php echo htmlspecialchars($r['ID_ENCLOS']) ?> – <?php echo htmlspecialchars($r['LIBELLE_ZONE']) ?></td>
                 <td><?php echo htmlspecialchars($r['PRENOM_PERSONNEL'].' '.$r['NOM_PERSONNEL']) ?></td>
+                <!-- Si pas de prestataire associé, on affiche "Interne" -->
                 <td><?php echo !empty($r['NOM_SOCIETE']) ? htmlspecialchars($r['NOM_SOCIETE']) : 'Interne' ?></td>
             </tr>
             <?php endforeach; ?>
 
-            <!-- Ligne d'ajout -->
+            <!-- Ligne de formulaire pour ajouter une nouvelle réparation -->
             <tr>
                 <form method="post">
+                    <!-- ID en lecture seule, calculé côté serveur -->
                     <td><input type="text" value="<?php echo htmlspecialchars($nextIdR) ?>" readonly></td>
 
                     <td>
@@ -160,6 +177,7 @@
                         <input type="text" name="libelle_reparation" placeholder="(optionnel)">
                     </td>
 
+                    <!-- Select des enclos disponibles -->
                     <td>
                         <select name="id_enclos_reparation" required>
                             <?php foreach ($enclos as $e): ?>
@@ -170,6 +188,7 @@
                         </select>
                     </td>
 
+                    <!-- Select des techniciens actifs uniquement -->
                     <td>
                         <select name="id_personnel_reparation" required>
                             <?php foreach ($techniciens as $p): ?>
@@ -180,6 +199,7 @@
                         </select>
                     </td>
 
+                    <!-- Select des prestataires (optionnel, "Interne" par défaut) -->
                     <td>
                         <select name="id_prestataire_reparation">
                             <option value="">Interne (aucun prestataire)</option>
@@ -198,6 +218,7 @@
 
         <h2>Gestion des prestataires</h2>
 
+        <!-- Tableau listant tous les prestataires existants + ligne d'ajout -->
         <table border="1">
             <tr>
                 <th>ID</th>
@@ -206,6 +227,7 @@
                 <th>Téléphone</th>
             </tr>
 
+            <!-- Affichage de chaque prestataire -->
             <?php foreach ($prestataires as $p): ?>
             <tr>
                 <td><?php echo htmlspecialchars($p['ID_PRESTATAIRE']) ?></td>
@@ -215,8 +237,10 @@
             </tr>
             <?php endforeach; ?>
 
+            <!-- Ligne de formulaire pour ajouter un nouveau prestataire -->
             <tr>
                 <form method="post">
+                    <!-- ID en lecture seule, calculé côté serveur -->
                     <td>
                         <input type="text" value="<?php echo htmlspecialchars($nextIdPrest) ?>" readonly>
                     </td>
