@@ -139,8 +139,21 @@
     AJOUT D'UN REPAS
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_repas'])) {
-        if (!postFieldsFilled(['nom_repas', 'date_repas', 'rfid_repas', 'id_personnel_repas', 'id_nourriture_repas', 'quantite_repas'])) {
-            $message = "Veuillez remplir tous les champs du repas.";
+        $nourrituresPost  = isset($_POST['id_nourriture_repas'])  ? (array)$_POST['id_nourriture_repas']  : [];
+        $quantitesPost    = isset($_POST['quantite_repas'])        ? (array)$_POST['quantite_repas']        : [];
+
+        // Dédoublonnage : garder uniquement les entrées dont la nourriture est renseignée
+        $lignesNourritures = [];
+        foreach ($nourrituresPost as $i => $idNourr) {
+            $idNourr = trim($idNourr);
+            $qte     = isset($quantitesPost[$i]) ? (int)$quantitesPost[$i] : 0;
+            if ($idNourr !== '' && $qte > 0 && !isset($lignesNourritures[$idNourr])) {
+                $lignesNourritures[$idNourr] = $qte;
+            }
+        }
+
+        if (!postFieldsFilled(['nom_repas', 'date_repas', 'rfid_repas', 'id_personnel_repas']) || empty($lignesNourritures)) {
+            $message = "Veuillez remplir tous les champs du repas et ajouter au moins une nourriture.";
         } else {
             $nextIdRepas = getNextId($conn, "Repas", "id_repas");
             execQuery($conn,
@@ -153,16 +166,19 @@
                     ':id_personnel' => $_POST['id_personnel_repas']
                 ]
             );
-            execQuery($conn,
-                "INSERT INTO Contient VALUES (:id_repas, :id_nourriture, :quantite)",
-                [
-                    ':id_repas'      => $nextIdRepas,
-                    ':id_nourriture' => $_POST['id_nourriture_repas'],
-                    ':quantite'      => $_POST['quantite_repas']
-                ]
-            );
+            foreach ($lignesNourritures as $idNourr => $qte) {
+                execQuery($conn,
+                    "INSERT INTO Contient VALUES (:id_repas, :id_nourriture, :quantite)",
+                    [
+                        ':id_repas'      => $nextIdRepas,
+                        ':id_nourriture' => $idNourr,
+                        ':quantite'      => $qte
+                    ]
+                );
+            }
             oci_commit($conn);
-            $message = "Repas ajouté avec succès.";
+            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?msg=repas_ok');
+            exit;
         }
     }
 
@@ -294,6 +310,9 @@
 
     $nextIdRepas = getNextId($conn, "Repas", "id_repas");
 
+    if (isset($_GET['msg']) && $_GET['msg'] === 'repas_ok') {
+        $message = "Repas ajouté avec succès.";
+    }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -382,7 +401,7 @@
         </form>
 
         <!-- ===================== REPAS ===================== -->
-        <h2>Repas</h2>
+        <h2><a name="repas" id="repas">Repas</a></h2>
         <form method="post">
             <table border="1">
                 <tr>
@@ -418,10 +437,10 @@
                 <!-- LIGNE D'AJOUT -->
                 <tr>
                     <td><input type="text" value="<?php echo $nextIdRepas ?>" readonly></td>
-                    <td><input type="text" name="nom_repas" required></td>
-                    <td><input type="date" name="date_repas" required></td>
+                    <td><input type="text" name="nom_repas"></td>
+                    <td><input type="date" name="date_repas"></td>
                     <td>
-                        <select name="rfid_repas" required>
+                        <select name="rfid_repas">
                             <?php foreach ($tousAnimaux as $a): ?>
                                 <option value="<?php echo htmlspecialchars($a['RFID']) ?>">
                                     <?php echo htmlspecialchars($a['NOM_ANIMAL'].' ('.$a['NOM_USUEL'].')') ?>
@@ -431,7 +450,7 @@
                     </td>
                     <td><i>Auto</i></td>
                     <td>
-                        <select name="id_personnel_repas" required>
+                        <select name="id_personnel_repas">
                             <?php foreach ($soigneurs as $s): ?>
                                 <option value="<?php echo htmlspecialchars($s['ID_PERSONNEL']) ?>">
                                     <?php echo htmlspecialchars($s['PRENOM_PERSONNEL'].' '.$s['NOM_PERSONNEL']) ?>
@@ -440,14 +459,26 @@
                         </select>
                     </td>
                     <td>
-                        <select name="id_nourriture_repas" required>
-                            <?php foreach ($nourritures as $n): ?>
-                                <option value="<?php echo htmlspecialchars($n['ID_NOURRITURE']) ?>">
-                                    <?php echo htmlspecialchars($n['NOM_NOURRITURE']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input type="number" name="quantite_repas" min="1" value="1" required style="width:50px">
+                        <?php
+                        $nbLignes = isset($_POST['nb_nourritures']) ? max(1, (int)$_POST['nb_nourritures']) : 1;
+                        if (isset($_POST['ajouter_ligne_nourriture'])) $nbLignes++;
+                        ?>
+                        <?php for ($i = 0; $i < $nbLignes; $i++): ?>
+                        <div style="margin-bottom:4px">
+                            <select name="id_nourriture_repas[]">
+                                <option value="">-- Aucune --</option>
+                                <?php foreach ($nourritures as $n): ?>
+                                    <option value="<?php echo htmlspecialchars($n['ID_NOURRITURE']) ?>"
+                                        <?php if (isset($_POST['id_nourriture_repas'][$i]) && $_POST['id_nourriture_repas'][$i] == $n['ID_NOURRITURE']) echo 'selected' ?>>
+                                        <?php echo htmlspecialchars($n['NOM_NOURRITURE']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <input type="number" name="quantite_repas[]" min="1" value="<?php echo isset($_POST['quantite_repas'][$i]) ? (int)$_POST['quantite_repas'][$i] : 1 ?>" style="width:50px">
+                        </div>
+                        <?php endfor; ?>
+                        <input type="hidden" name="nb_nourritures" value="<?php echo $nbLignes ?>">
+                        <input type="submit" name="ajouter_ligne_nourriture" value="+ Nourriture">
                     </td>
                     <td><input type="submit" name="ajouter_repas" value="Ajouter"></td>
                 </tr>
