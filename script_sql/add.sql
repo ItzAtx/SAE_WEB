@@ -34,7 +34,7 @@ INSERT INTO Zone_zoo (id_zone, libelle_zone, id_personnel) VALUES (5, 'Zone Aqua
 UPDATE Personnel SET id_zone = 1 WHERE id_personnel IN (1, 2, 3);
 UPDATE Personnel SET id_zone = 2 WHERE id_personnel IN (4, 5, 6);
 UPDATE Personnel SET id_zone = 3 WHERE id_personnel IN (7, 8, 9);
-UPDATE Personnel SET id_zone = 4 WHERE id_personnel IN (10, 11, 12) 
+UPDATE Personnel SET id_zone = 4 WHERE id_personnel IN (10, 11, 12);
 UPDATE Personnel SET id_zone = 5 WHERE id_personnel IN (13, 14, 15);
 
 /*Contrats (1 par personnel)*/
