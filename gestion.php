@@ -65,7 +65,7 @@
             );
             //Ajout des données dans Contrat
             execQuery($conn,
-                "INSERT INTO Contrat VALUES (:id_contrat, :salaire, TO_DATE(:date_debut,'YYYY-MM-DD'), :id_fonction, :id_personnel)",
+                "INSERT INTO Contrat VALUES (:id_contrat, :salaire, TO_DATE(:date_debut,'YYYY-MM-DD'), NULL, :id_fonction, :id_personnel)",
                 [":id_contrat" => $_POST['id_contrat'],":salaire" => $_POST['salaire'], ":date_debut" => $_POST['date_debut'], ":id_fonction" => $rowFonction['ID_FONCTION'], ":id_personnel" => $_POST['id_personnel']]
             );
             oci_commit($conn);
@@ -208,11 +208,29 @@
     ========================= */
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['supprimer_id_boutique'])) {
         $id = $_POST['supprimer_id_boutique'];
-        deleteWhere($conn, 'Travaille', 'id_boutique', $id); //Suppression dans Travaille
-        deleteWhere($conn, 'Chiffre_affaire', 'id_boutique', $id); //Suppression dans Chiffre_Affaire
-        deleteWhere($conn, 'Boutique', 'id_boutique', $id); //Suppression dans Boutique
-        oci_commit($conn);
-        redirectSelf();
+
+        // Vérifier s'il y a des employés actifs travaillant dans cette boutique
+        $employes = fetchAllRows($conn,
+            "SELECT P.id_personnel, P.prenom_personnel, P.nom_personnel
+            FROM Travaille T, Personnel P
+            WHERE T.id_boutique = :id
+            AND T.id_personnel = P.id_personnel
+            AND P.archiver_personnel = 'N'",
+            [':id' => $id]
+        );
+
+        if (!empty($employes)) {
+            $noms = array_map(function($e) {
+                return $e['PRENOM_PERSONNEL'].' '.$e['NOM_PERSONNEL'];
+            }, $employes);
+            $message = "Impossible de supprimer cette boutique : ".count($employes)." employé(s) y travaillent encore (".implode(', ', $noms)."). Veuillez d'abord les archiver.";
+        } else {
+            deleteWhere($conn, 'Travaille', 'id_boutique', $id); //Suppression dans Travaille
+            deleteWhere($conn, 'Chiffre_affaire', 'id_boutique', $id); //Suppression dans Chiffre_Affaire
+            deleteWhere($conn, 'Boutique', 'id_boutique', $id); //Suppression dans Boutique
+            oci_commit($conn);
+            redirectSelf();
+        }
     }
 
     /* =========================
